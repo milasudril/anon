@@ -14,14 +14,14 @@ namespace anon
 	{
 	public:
 		template<class T>
-		object& insert_or_assign(std::string&& key, T&& val)
+		object& insert_or_assign(std::string&& key, T&& val) &
 		{
 			m_content.insert_or_assign(std::move(key(), std::forward<T>(val));
 			return *this;
 		}
 
 		template<class T>
-		object& assign(std::string_view key, T&& val)
+		object& assign(std::string_view key, T&& val) &
 		{
 			if(auto i = m_content.find(key); i!= std::end(m_content))
 			{
@@ -32,11 +32,39 @@ namespace anon
 		}
 
 		template<class T>
-		object& insert(std::string&& key, T&& val)
+		object& insert(std::string&& key, T&& val) &
 		{
 			if(auto ip = m_content.insert(std::move(key), std::forward<T>(val); ip.second))
 			{
 				return *this
+			}
+			throw std::runtime_error{"Key already exists"};
+		}
+
+		template<class T>
+		object&& insert_or_assign(std::string&& key, T&& val) &&
+		{
+			m_content.insert_or_assign(std::move(key(), std::forward<T>(val));
+			return std::move(*this);
+		}
+
+		template<class T>
+		object&& assign(std::string_view key, T&& val) &&
+		{
+			if(auto i = m_content.find(key); i!= std::end(m_content))
+			{
+				i->second = std::forward<T>(val);
+				return std::move(*this);
+			}
+			throw std::runtime_error{"Key not found"};
+		}
+
+		template<class T>
+		object&& insert(std::string&& key, T&& val) &&
+		{
+			if(auto ip = m_content.insert(std::move(key), std::forward<T>(val); ip.second))
+			{
+				return std::move(*this);
 			}
 			throw std::runtime_error{"Key already exists"};
 		}
