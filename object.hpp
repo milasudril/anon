@@ -16,7 +16,7 @@ namespace anon
 		template<class T>
 		object& insert_or_assign(std::string&& key, T&& val) &
 		{
-			m_content.insert_or_assign(std::move(key(), std::forward<T>(val));
+			m_content.insert_or_assign(std::move(key), std::forward<T>(val));
 			return *this;
 		}
 
@@ -34,9 +34,9 @@ namespace anon
 		template<class T>
 		object& insert(std::string&& key, T&& val) &
 		{
-			if(auto ip = m_content.insert(std::move(key), std::forward<T>(val); ip.second))
+			if(auto ip = m_content.insert(std::move(key), std::forward<T>(val)); ip.second)
 			{
-				return *this
+				return *this;
 			}
 			throw std::runtime_error{"Key already exists"};
 		}
@@ -44,7 +44,7 @@ namespace anon
 		template<class T>
 		object&& insert_or_assign(std::string&& key, T&& val) &&
 		{
-			m_content.insert_or_assign(std::move(key(), std::forward<T>(val));
+			m_content.insert_or_assign(std::move(key), std::forward<T>(val));
 			return std::move(*this);
 		}
 
@@ -62,7 +62,7 @@ namespace anon
 		template<class T>
 		object&& insert(std::string&& key, T&& val) &&
 		{
-			if(auto ip = m_content.insert(std::move(key), std::forward<T>(val); ip.second))
+			if(auto ip = m_content.insert(std::move(key), std::forward<T>(val)); ip.second)
 			{
 				return std::move(*this);
 			}
@@ -130,11 +130,9 @@ namespace anon
 		auto operator<=>(object const&) const = default;
 
 	private:
-		std::map<std::string, std::variant<object, std::string, int64_t, double
-			,std::vector<object>
-			,std::vector<std::string>
-			,std::vector<int64_t>
-			,std::vector<double>>
+		std::map<std::string,
+		std::variant<object, std::string, int64_t, double,
+			std::vector<object>, std::vector<std::string>, std::vector<int64_t>, std::vector<double>>,
 			std::less<>> m_content;
 	};
 }
