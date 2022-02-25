@@ -15,9 +15,9 @@ namespace anon
 		size_t level = 0;
 		while(true)
 		{
-			auto val = read_byte(src);
-			static_assert(std::is_same_v<val, std::optional<char>>);
-			if(!val.has_value())
+			auto const result = read_byte(src);
+			static_assert(std::is_same_v<std::decay_t<decltype(result)>, std::optional<char>>);
+			if(!result.has_value())
 			{
 				if(level != 0)
 				{
@@ -26,14 +26,16 @@ namespace anon
 				return object{};
 			}
 
-			switch(state)
+			auto const val = *result;
+
+			switch(current_state)
 			{
 				case state::init:
 					switch(val)
 					{
 						case '\\':
-							state_prev = state;
-							state=state::ctrl_word;
+							state_prev = current_state;
+							current_state=state::ctrl_word;
 							break;
 
 						default:
@@ -49,15 +51,15 @@ namespace anon
 					{
 						case '\\':
 							if(state_prev == state::init)
-							{ throw std::runtime_error{"Values may not occur here"}}
+							{ throw std::runtime_error{"Values may not occur here"};}
 
-							state = state_prev;
+							current_state = state_prev;
 							buffer += val;
 							break;
 
 						case '{':
 							++level;
-							state = state::value;
+							current_state = state::value;
 							printf("Control word: %s\n", buffer.c_str());
 							buffer.clear();
 							break;
@@ -77,7 +79,7 @@ namespace anon
 							break;
 
 						default:
-							buffer += ch_in;
+							buffer += val;
 							break;
 					}
 					break;
@@ -86,9 +88,11 @@ namespace anon
 					switch(val)
 					{
 						case '\\':
-							state_prev = state;
-							state=state::ctrl_word;
+							state_prev = current_state;
+							current_state=state::ctrl_word;
 							break;
+						default:
+							buffer += val;
 					}
 					break;
 			}
