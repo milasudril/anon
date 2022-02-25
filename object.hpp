@@ -52,7 +52,7 @@ namespace anon
 		template<class T>
 		object& insert(std::string&& key, T&& val) &
 		{
-			if(auto ip = m_content.insert(std::move(key), std::forward<T>(val)); ip.second)
+			if(auto ip = m_content.insert(std::pair{std::move(key), std::forward<T>(val)}); ip.second)
 			{
 				return *this;
 			}

@@ -14,10 +14,47 @@ TESTCASE(anon_object_insert_or_assign)
 	EXPECT_EQ(std::get<int64_t>(obj["foobar"]), 1);
 	EXPECT_EQ(std::size(obj), 1);
 	EXPECT_EQ(std::begin(obj)->first, "foobar");
+	EXPECT_EQ(obj.contains("foobar"), true);
 
 	obj.insert_or_assign("foobar", "kaka");
 
 	EXPECT_EQ(std::get<std::string>(obj["foobar"]), "kaka");
 	EXPECT_EQ(std::size(obj), 1);
 	EXPECT_EQ(std::begin(obj)->first, "foobar");
+}
+
+TESTCASE(anon_object_insert_and_assign)
+{
+	anon::object obj;
+
+	obj.insert("kaka", 12);
+
+	EXPECT_EQ(std::get<int64_t>(obj["kaka"]), 12);
+	EXPECT_EQ(std::size(obj), 1);
+	EXPECT_EQ(std::begin(obj)->first, "kaka");
+
+	REQUIRE_EQ(obj.contains("kaka"), true);
+	obj.assign("kaka", "bulle");
+	EXPECT_EQ(std::get<std::string>(obj["kaka"]), "bulle");
+	EXPECT_EQ(std::size(obj), 1);
+	EXPECT_EQ(std::begin(obj)->first, "kaka");
+
+	try
+	{
+		REQUIRE_EQ(obj.contains("kaka"), true);
+		obj.insert("kaka", 34);
+		testcaseFailed();
+	}
+	catch(...)
+	{}
+
+	try
+	{
+		REQUIRE_EQ(obj.contains("foobar"), false);
+		obj.assign("foobar", "nop");
+		testcaseFailed();
+	}
+	catch(...)
+	{
+	}
 }
