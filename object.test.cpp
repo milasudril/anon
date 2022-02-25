@@ -58,3 +58,33 @@ TESTCASE(anon_object_insert_and_assign)
 	{
 	}
 }
+
+TESTCASE(anon_object_key_access_not_found)
+{
+	anon::object obj;
+	REQUIRE_EQ(obj.contains("foobar"), false);
+	try
+	{
+		auto val = obj["foobar"];
+		testcaseFailed();
+	}
+	catch(...)
+	{}
+
+	EXPECT_EQ(obj.find("foobar") == std::end(obj), true);
+}
+
+TESTCASE(anon_object_key_access_found)
+{
+	anon::object obj;
+	obj.insert("val", 123);
+	REQUIRE_EQ(obj.contains("val"), true);
+	EXPECT_EQ(std::get<int64_t>(obj["val"]), 123);
+
+	auto i = obj.find("val");
+	EXPECT_EQ(i != std::end(obj), true);
+
+	REQUIRE_EQ(i != std::end(obj), true);
+	EXPECT_EQ(i->first, "val");
+	EXPECT_EQ(std::get<int64_t>(i->second), 123);
+}
