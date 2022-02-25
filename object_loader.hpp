@@ -1,3 +1,5 @@
+//@	{"dependencies_extra":[{"ref":"./object_loader.o","rel":"implementation"}]}
+
 #ifndef ANON_OBJECTLOADER_HPP
 #define ANON_OBJECTLOADER_HPP
 
@@ -13,7 +15,12 @@ namespace anon
 		state prev_state{state::init};
 		std::string buffer;
 		size_t level{0};
+		object retval;
 	};
+
+	enum class parse_result{done, more_data_needed};
+
+	parse_result update(std::optional<char> input, parser_context& ctxt);
 
 	template<class Source>
 	object load(Source&& src)
@@ -22,86 +29,9 @@ namespace anon
 
 		while(true)
 		{
-			auto const result = read_byte(src);
-			static_assert(std::is_same_v<std::decay_t<decltype(result)>, std::optional<char>>);
-			if(!result.has_value())
+			if(update(read_byte(src), ctxt) == parse_result::done)
 			{
-				if(ctxt.level != 0)
-				{
-					throw std::runtime_error{"Input data contains an non-terminated value"};
-				}
-				return object{};
-			}
-
-			auto const val = *result;
-
-			switch(ctxt.current_state)
-			{
-				case parser_context::state::init:
-					switch(val)
-					{
-						case '\\':
-							ctxt.prev_state = ctxt.current_state;
-							ctxt.current_state=parser_context::state::ctrl_word;
-							break;
-
-						default:
-							if(!(val>='\0' && val<= ' '))
-							{
-								throw std::runtime_error{"Invalid input data"};
-							}
-					}
-					break;
-
-				case parser_context::state::ctrl_word:
-					switch(val)
-					{
-						case '\\':
-							if(ctxt.prev_state == parser_context::state::init)
-							{ throw std::runtime_error{"Values may not occur here"};}
-
-							ctxt.current_state = ctxt.prev_state;
-							ctxt.buffer += val;
-							break;
-
-						case '{':
-							++ctxt.level;
-							ctxt.current_state = parser_context::state::value;
-							printf("Control word: %s\n", ctxt.buffer.c_str());
-							ctxt.buffer.clear();
-							break;
-
-						case '}':
-							if(ctxt.prev_state != parser_context::state::value || ctxt.level == 0)
-							{
-								throw std::runtime_error{"No value here to end"};
-							}
-							--ctxt.level;
-							printf("Value: %s\n", ctxt.buffer.c_str());
-							ctxt.buffer.clear();
-							if(ctxt.level == 0)
-							{
-								return object{};
-							}
-							break;
-
-						default:
-							ctxt.buffer += val;
-							break;
-					}
-					break;
-
-				case parser_context::state::value:
-					switch(val)
-					{
-						case '\\':
-							ctxt.prev_state = ctxt.current_state;
-							ctxt.current_state=parser_context::state::ctrl_word;
-							break;
-						default:
-							ctxt.buffer += val;
-					}
-					break;
+				return ctxt.retval;
 			}
 		}
 	}
