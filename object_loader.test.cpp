@@ -25,5 +25,5 @@ namespace
 
 TESTCASE(anon_load)
 {
-	auto obj = anon::load(buffer{"        \\obj{ this is a value\\}"});
+	auto obj = anon::load(buffer{"        \\obj{ this is a value\\}blah"});
 }
