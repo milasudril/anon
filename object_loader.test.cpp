@@ -29,6 +29,7 @@ TESTCASE(anon_load)
 	a_key: obj{
 		a_string: str{this is a test with \\ and { } \}
 		a_second_string: str{foobar\}
+		an_array: str...{value 1\;value 2\;value 3\}
 		\}
 	\}
 blah)"});

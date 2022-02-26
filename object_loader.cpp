@@ -9,6 +9,9 @@ anon::parser_context::state anon::state_from_ctrl_word(std::string_view buffer)
 
 	if(buffer == "str")
 	{ return parser_context::state::value; }
+
+	if(buffer == "str...")
+	{ return parser_context::state::array; }
 #if 0
 
 	if(buffer == "int")
@@ -147,6 +150,18 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 			}
 			break;
 
+		case parser_context::state::array:
+			switch(val)
+			{
+				case '\\':
+					ctxt.prev_state = ctxt.current_state;
+					ctxt.current_state = parser_context::state::ctrl_char;
+					break;
+				default:
+					ctxt.buffer += val;
+			}
+			break;
+
 		case parser_context::state::ctrl_char:
 			switch(val)
 			{
@@ -159,7 +174,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					if(ctxt.level == 0)
 					{ return parse_result::done; }
 
-					if(ctxt.prev_state == parser_context::state::value)
+					if(ctxt.prev_state == parser_context::state::value || ctxt.prev_state == parser_context::state::array)
 					{ ctxt.current_state = parser_context::state::key;}
 					else
 					{ ctxt.current_state = ctxt.prev_state; }
@@ -168,10 +183,21 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					ctxt.buffer.clear();
 					break;
 
+				case ';':
+					if( ctxt.prev_state != parser_context::state::array)
+					{ throw std::runtime_error{"Multiple values require an array"};}
+
+					printf("[%s]", ctxt.buffer.c_str());
+					ctxt.buffer.clear();
+					ctxt.current_state = ctxt.prev_state;
+
+					break;
+
 				default:
 					ctxt.buffer += val;
 					ctxt.current_state = ctxt.prev_state;
 			}
+
 
 	}
 	return parse_result::more_data_needed;
