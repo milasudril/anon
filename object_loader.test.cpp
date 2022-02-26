@@ -38,4 +38,10 @@ obj{
 \}
 blah)"});
 	printf("%zu\n", std::size(obj));
+#if 0
+		an_array_of_objects: obj...{
+		foobar:str...{A\;B\;C\}\;
+		kaka:str...{D\;E\;F\}
+	\}
+#endif
 }
