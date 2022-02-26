@@ -191,6 +191,9 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					}
 					--ctxt.level;
 
+					if(ctxt.level == 0)
+					{ return parse_result::done; }
+
 					std::visit([buffer = std::move(ctxt.buffer)](auto& val) mutable {
 						object_loader_detail::update(val, std::move(buffer));
 					}, ctxt.current_node.second);
@@ -199,9 +202,6 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					ctxt.parent_nodes.pop();
 					std::get<object>(top_of_stack.second).insert(std::move(ctxt.current_node.first), std::move(ctxt.current_node.second));
 					ctxt.current_node = std::move(top_of_stack);
-
-					if(ctxt.level == 0)
-					{ return parse_result::done; }
 
 					if(ctxt.prev_state == parser_context::state::value || ctxt.prev_state == parser_context::state::array)
 					{ ctxt.current_state = parser_context::state::key;}
