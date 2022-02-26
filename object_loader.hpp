@@ -11,7 +11,7 @@ namespace anon
 {
 	struct parser_context
 	{
-		enum class state:int{init, type_tag, after_type_tag, key, after_key, ctrl_char, value, array};
+		enum class state:int{init, type_tag, after_type_tag, key, after_key, ctrl_char, value};
 
 		state current_state{state::init};
 		state prev_state{state::init};

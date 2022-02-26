@@ -11,7 +11,7 @@ std::pair<anon::parser_context::state, anon::object::mapped_type> anon::state_fr
 	{ return std::pair{parser_context::state::value, std::string{}}; }
 
 	if(buffer == "str...")
-	{ return std::pair{parser_context::state::array, std::vector<std::string>{}}; }
+	{ return std::pair{parser_context::state::value, std::vector<std::string>{}}; }
 
 #if 0
 	if(buffer == "int")
@@ -187,18 +187,6 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 			}
 			break;
 
-		case parser_context::state::array:
-			switch(val)
-			{
-				case '\\':
-					ctxt.prev_state = ctxt.current_state;
-					ctxt.current_state = parser_context::state::ctrl_char;
-					break;
-				default:
-					ctxt.buffer += val;
-			}
-			break;
-
 		case parser_context::state::ctrl_char:
 			switch(val)
 			{
@@ -222,7 +210,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					std::get<object>(top_of_stack.second).insert(std::move(ctxt.current_node.first), std::move(ctxt.current_node.second));
 					ctxt.current_node = std::move(top_of_stack);
 
-					if(ctxt.prev_state == parser_context::state::value || ctxt.prev_state == parser_context::state::array)
+					if(ctxt.prev_state == parser_context::state::value)
 					{ ctxt.current_state = parser_context::state::key;}
 					else
 					{ ctxt.current_state = ctxt.prev_state; }
