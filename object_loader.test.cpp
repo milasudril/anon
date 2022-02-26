@@ -1,4 +1,4 @@
-//@	{"target":{"name":"obejct_loader.test"}}
+//@	{"target":{"name":"object_loader.test"}}
 
 #include "./object_loader.hpp"
 
@@ -25,5 +25,11 @@ namespace
 
 TESTCASE(anon_load)
 {
-	auto obj = anon::load(buffer{"        \\obj{ this is a value\\}blah"});
+	auto obj = anon::load(buffer{R"(    obj    {
+	a_key: obj{
+		a_string: str{this is a test with \\ and { } \}
+		a_second_string: str{foobar\}
+		\}
+	\}
+blah)"});
 }

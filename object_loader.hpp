@@ -9,7 +9,7 @@ namespace anon
 {
 	struct parser_context
 	{
-		enum class state:int{init, ctrl_word, value};
+		enum class state:int{init, type_tag, after_type_tag, key, after_key, ctrl_char, value};
 
 		state current_state{state::init};
 		state prev_state{state::init};
@@ -21,6 +21,8 @@ namespace anon
 	enum class parse_result{done, more_data_needed};
 
 	parse_result update(std::optional<char> input, parser_context& ctxt);
+
+	parser_context::state state_from_ctrl_word(std::string_view);
 
 	template<class Source>
 	object load(Source&& src)
