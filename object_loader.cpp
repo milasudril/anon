@@ -10,10 +10,10 @@ std::pair<anon::parser_context::state, anon::object::mapped_type> anon::state_fr
 	if(buffer == "str")
 	{ return std::pair{parser_context::state::value, std::string{}}; }
 
-#if 0
 	if(buffer == "str...")
 	{ return std::pair{parser_context::state::array, std::vector<std::string>{}}; }
 
+#if 0
 	if(buffer == "int")
 	{ return parser_context::state::integer_value; }
 
@@ -30,13 +30,32 @@ namespace anon::object_loader_detail
 		return val >= '\0' && val<= ' ';
 	}
 
-	void update(std::string& dest, std::string&& src)
+	template<class Dest>
+	void finalize(Dest& dest, std::string&& src)
 	{
 		dest = std::move(src);
 	}
 
-	void update(object&, std::string&&)
+	template<class Dest>
+	void finalize(std::vector<Dest>& dest, std::string&& src)
 	{
+		dest.push_back(std::move(src));
+	}
+
+	void finalize(object&, std::string&&)
+	{
+	}
+
+	template<class Dest>
+	void append(Dest&, std::string&&)
+	{
+		throw std::runtime_error{"Multiple values require an array"};
+	}
+
+	template<class Dest>
+	void append(std::vector<Dest>& dest, std::string&& src)
+	{
+		dest.push_back(std::move(src));
 	}
 }
 
@@ -195,7 +214,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					{ return parse_result::done; }
 
 					std::visit([buffer = std::move(ctxt.buffer)](auto& val) mutable {
-						object_loader_detail::update(val, std::move(buffer));
+						object_loader_detail::finalize(val, std::move(buffer));
 					}, ctxt.current_node.second);
 
 					auto top_of_stack = std::move(ctxt.parent_nodes.top());
@@ -213,13 +232,11 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 				}
 
 				case ';':
-					if( ctxt.prev_state != parser_context::state::array)
-					{ throw std::runtime_error{"Multiple values require an array"};}
+					std::visit([buffer = std::move(ctxt.buffer)](auto& val) mutable {
+						object_loader_detail::append(val, std::move(buffer));
+					}, ctxt.current_node.second);
 
-					printf("[%s]", ctxt.buffer.c_str());
-					ctxt.buffer.clear();
 					ctxt.current_state = ctxt.prev_state;
-
 					break;
 
 				default:

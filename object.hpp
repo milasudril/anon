@@ -13,7 +13,7 @@ namespace anon
 	class object
 	{
 	public:
-		using mapped_type = std::variant<object, std::string>;
+		using mapped_type = std::variant<object, std::string, std::vector<std::string>>;
 
 		using key_type = std::string;
 

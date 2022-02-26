@@ -34,6 +34,7 @@ obj{
 			kaka:str{bulle\}
 		\}
 	\}
+	an_array_of_strings: str...{First string\;Second stirng\;Third string\}
 \}
 blah)"});
 	printf("%zu\n", std::size(obj));
