@@ -25,12 +25,16 @@ namespace
 
 TESTCASE(anon_load)
 {
-	auto obj = anon::load(buffer{R"(    obj    {
+	auto obj = anon::load(buffer{R"(
+obj{
 	a_key: obj{
 		a_string: str{this is a test with \\ and { } \}
 		a_second_string: str{foobar\}
-		an_array: str...{value 1\;value 2\;value 3\}
+		a_third_level: obj{
+			kaka:str{bulle\}
 		\}
 	\}
+\}
 blah)"});
+	printf("%zu\n", std::size(obj));
 }

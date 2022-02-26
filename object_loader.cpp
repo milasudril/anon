@@ -2,17 +2,17 @@
 
 #include "./object_loader.hpp"
 
-anon::parser_context::state anon::state_from_ctrl_word(std::string_view buffer)
+std::pair<anon::parser_context::state, anon::object::mapped_type> anon::state_from_ctrl_word(std::string_view buffer)
 {
 	if(buffer == "obj")
-	{ return parser_context::state::key; }
+	{ return std::pair{parser_context::state::key, object{}}; }
 
 	if(buffer == "str")
-	{ return parser_context::state::value; }
+	{ return std::pair{parser_context::state::value, std::string{}}; }
 
-	if(buffer == "str...")
-	{ return parser_context::state::array; }
 #if 0
+	if(buffer == "str...")
+	{ return std::pair{parser_context::state::array, std::vector<std::string>{}}; }
 
 	if(buffer == "int")
 	{ return parser_context::state::integer_value; }
@@ -23,11 +23,20 @@ anon::parser_context::state anon::state_from_ctrl_word(std::string_view buffer)
 	throw std::runtime_error{"Unsupported type"};
 }
 
-namespace
+namespace anon::object_loader_detail
 {
 	constexpr bool is_whitespace(char val)
 	{
 		return val >= '\0' && val<= ' ';
+	}
+
+	void update(std::string& dest, std::string&& src)
+	{
+		dest = std::move(src);
+	}
+
+	void update(object&, std::string&&)
+	{
 	}
 }
 
@@ -48,7 +57,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 	switch(ctxt.current_state)
 	{
 		case parser_context::state::init:
-			if(!is_whitespace(val))
+			if(!object_loader_detail::is_whitespace(val))
 			{
 				ctxt.current_state = parser_context::state::type_tag;
 				ctxt.buffer += val;
@@ -59,13 +68,19 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 			switch(val)
 			{
 				case '{':
+				{
 					++ctxt.level;
-					ctxt.current_state = state_from_ctrl_word(ctxt.buffer);
+					auto [state, value] = state_from_ctrl_word(ctxt.buffer);
+					ctxt.parent_nodes.push(std::move(ctxt.current_node));
+					ctxt.current_node.first = std::move(ctxt.current_key);
+					ctxt.current_node.second = std::move(value);
+					ctxt.current_state = state;
 					ctxt.buffer.clear();
 					break;
+				}
 
 				default:
-					if(is_whitespace(val))
+					if(object_loader_detail::is_whitespace(val))
 					{
 						ctxt.current_state = parser_context::state::after_type_tag;
 					}
@@ -78,13 +93,18 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 			switch(val)
 			{
 				case '{':
+				{
 					++ctxt.level;
-					ctxt.current_state = state_from_ctrl_word(ctxt.buffer);
-				//	printf("%d\n", static_cast<int>(ctxt.current_state));
+					auto [state, value] = state_from_ctrl_word(ctxt.buffer);
+					ctxt.parent_nodes.push(std::move(ctxt.current_node));
+					ctxt.current_node.first = std::move(ctxt.current_key);
+					ctxt.current_node.second = std::move(value);
+					ctxt.current_state = state;
 					ctxt.buffer.clear();
 					break;
+				}
 				default:
-					if(!is_whitespace(val))
+					if(!object_loader_detail::is_whitespace(val))
 					{
 						throw std::runtime_error{"Junk after type tag"};
 					}
@@ -96,8 +116,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 			{
 				case ':':
 					ctxt.current_state = parser_context::state::init;
-					printf("[%s]", ctxt.buffer.c_str());
-					ctxt.buffer.clear();
+					ctxt.current_key = std::move(ctxt.buffer);
 					break;
 
 				case '\\':
@@ -106,7 +125,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					break;
 
 				default:
-					if(is_whitespace(val))
+					if(object_loader_detail::is_whitespace(val))
 					{
 						if(std::size(ctxt.buffer) != 0)
 						{
@@ -125,12 +144,11 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 			{
 				case ':':
 					ctxt.current_state = parser_context::state::init;
-					printf("[%s]", ctxt.buffer.c_str());
-					ctxt.buffer.clear();
+					ctxt.current_key = std::move(ctxt.buffer);
 					break;
 
 				default:
-					if(!is_whitespace(val))
+					if(!object_loader_detail::is_whitespace(val))
 					{
 						throw std::runtime_error{"Junk after key"};
 					}
@@ -166,11 +184,22 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 			switch(val)
 			{
 				case '}':
+				{
 					if(ctxt.level == 0)
 					{
 						throw std::runtime_error{"No value here to end"};
 					}
 					--ctxt.level;
+
+					std::visit([buffer = std::move(ctxt.buffer)](auto& val) mutable {
+						object_loader_detail::update(val, std::move(buffer));
+					}, ctxt.current_node.second);
+
+					auto top_of_stack = std::move(ctxt.parent_nodes.top());
+					ctxt.parent_nodes.pop();
+					std::get<object>(top_of_stack.second).insert(std::move(ctxt.current_node.first), std::move(ctxt.current_node.second));
+					ctxt.current_node = std::move(top_of_stack);
+
 					if(ctxt.level == 0)
 					{ return parse_result::done; }
 
@@ -179,9 +208,9 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					else
 					{ ctxt.current_state = ctxt.prev_state; }
 
-					printf("[%s]", ctxt.buffer.c_str());
 					ctxt.buffer.clear();
 					break;
+				}
 
 				case ';':
 					if( ctxt.prev_state != parser_context::state::array)

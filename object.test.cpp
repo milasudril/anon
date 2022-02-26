@@ -1,4 +1,4 @@
-//@	{"target":{"name":"obejct.test"}}
+//	{"target":{"name":"obejct.test"}}
 
 #include "./object.hpp"
 

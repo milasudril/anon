@@ -13,15 +13,21 @@ namespace anon
 	class object
 	{
 	public:
+		using mapped_type = std::variant<object, std::string>;
+
+		using key_type = std::string;
+
+		using value_type = std::pair<key_type const, mapped_type>;
+
 		template<class T>
-		object& insert_or_assign(std::string&& key, T&& val) &
+		object& insert_or_assign(key_type&& key, T&& val) &
 		{
 			m_content.insert_or_assign(std::move(key), std::forward<T>(val));
 			return *this;
 		}
 
 		template<class T>
-		object&& insert_or_assign(std::string&& key, T&& val) &&
+		object&& insert_or_assign(key_type&& key, T&& val) &&
 		{
 			m_content.insert_or_assign(std::move(key), std::forward<T>(val));
 			return std::move(*this);
@@ -50,7 +56,7 @@ namespace anon
 		}
 
 		template<class T>
-		object& insert(std::string&& key, T&& val) &
+		object& insert(key_type&& key, T&& val) &
 		{
 			if(auto ip = m_content.insert(std::pair{std::move(key), std::forward<T>(val)}); ip.second)
 			{
@@ -60,7 +66,7 @@ namespace anon
 		}
 
 		template<class T>
-		object&& insert(std::string&& key, T&& val) &&
+		object&& insert(key_type&& key, T&& val) &&
 		{
 			if(auto ip = m_content.insert(std::move(key), std::forward<T>(val)); ip.second)
 			{
@@ -130,10 +136,7 @@ namespace anon
 		auto operator<=>(object const&) const = default;
 
 	private:
-		std::map<std::string,
-		std::variant<object, std::string, int64_t, double,
-			std::vector<object>, std::vector<std::string>, std::vector<int64_t>, std::vector<double>>,
-			std::less<>> m_content;
+		std::map<key_type, mapped_type, std::less<>> m_content;
 	};
 }
 

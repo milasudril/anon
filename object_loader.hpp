@@ -5,6 +5,8 @@
 
 #include "./object.hpp"
 
+#include <stack>
+
 namespace anon
 {
 	struct parser_context
@@ -14,15 +16,18 @@ namespace anon
 		state current_state{state::init};
 		state prev_state{state::init};
 		std::string buffer;
+		using node_type = std::pair<object::key_type, object::mapped_type>;
+		std::string current_key;
+		node_type current_node;
+		std::stack<node_type> parent_nodes;
 		size_t level{0};
-		object retval;
 	};
 
 	enum class parse_result{done, more_data_needed};
 
 	parse_result update(std::optional<char> input, parser_context& ctxt);
 
-	parser_context::state state_from_ctrl_word(std::string_view);
+	std::pair<parser_context::state, object::mapped_type> state_from_ctrl_word(std::string_view);
 
 	template<class Source>
 	object load(Source&& src)
@@ -33,7 +38,7 @@ namespace anon
 		{
 			if(update(read_byte(src), ctxt) == parse_result::done)
 			{
-				return ctxt.retval;
+				return std::get<object>(ctxt.current_node.second);
 			}
 		}
 	}
