@@ -1,6 +1,8 @@
 #ifndef ANON_OBJECT_HPP
 #define ANON_OBJECT_HPP
 
+#include "./key.hpp"
+
 #include <variant>
 #include <string>
 #include <map>
@@ -15,7 +17,7 @@ namespace anon
 	public:
 		using mapped_type = std::variant<object, std::string, std::vector<object>, std::vector<std::string>>;
 
-		using key_type = std::string;
+		using key_type = key;
 
 		using value_type = std::pair<key_type const, mapped_type>;
 
