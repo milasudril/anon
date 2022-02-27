@@ -16,14 +16,43 @@ std::pair<anon::parser_context::state, anon::object::mapped_type> anon::state_fr
 	if(buffer == "str...")
 	{ return std::pair{parser_context::state::value, std::vector<std::string>{}}; }
 
-#if 0
-	if(buffer == "int")
-	{ return parser_context::state::integer_value; }
+	if(buffer == "i32")
+	{ return std::pair{parser_context::state::value, int32_t{}}; }
 
-	if(buffer == "flt")
-	{ return parser_context::state::float_value; }
-#endif
-	throw std::runtime_error{"Unsupported type"};
+	if(buffer == "i32...")
+	{ return std::pair{parser_context::state::value, std::vector<int32_t>{}}; }
+
+	if(buffer == "i64")
+	{ return std::pair{parser_context::state::value, int64_t{}}; }
+
+	if(buffer == "i64...")
+	{ return std::pair{parser_context::state::value, std::vector<int64_t>{}}; }
+
+	if(buffer == "u32")
+	{ return std::pair{parser_context::state::value, uint32_t{}}; }
+
+	if(buffer == "u32...")
+	{ return std::pair{parser_context::state::value, std::vector<uint32_t>{}}; }
+
+	if(buffer == "u64")
+	{ return std::pair{parser_context::state::value, uint64_t{}}; }
+
+	if(buffer == "u64...")
+	{ return std::pair{parser_context::state::value, std::vector<uint64_t>{}}; }
+
+	if(buffer == "f32")
+	{ return std::pair{parser_context::state::value, float{}}; }
+
+	if(buffer == "f32...")
+	{ return std::pair{parser_context::state::value, std::vector<float>{}}; }
+
+	if(buffer == "f64")
+	{ return std::pair{parser_context::state::value, double{}}; }
+
+	if(buffer == "f64...")
+	{ return std::pair{parser_context::state::value, std::vector<double>{}}; }
+
+	throw std::runtime_error{std::string{"Unsupported type '"}.append(buffer).append("'")};
 }
 
 namespace anon::object_loader_detail
@@ -33,8 +62,42 @@ namespace anon::object_loader_detail
 		return val >= '\0' && val<= ' ';
 	}
 
-	template<class Dest>
-	void finalize(Dest& dest, std::string&& src)
+	void finalize(int32_t& dest, std::string const& src)
+	{
+		dest = std::stoi(src);
+	}
+
+	void finalize(int64_t& dest, std::string const& src)
+	{
+		dest = std::stoll(src);
+	}
+
+	void finalize(uint32_t& dest, std::string const& src)
+	{
+		auto const res = std::stoull(src);
+		if(res >= 0xffffffffll)
+		{ throw std::out_of_range{"Value does not fit in uint32_t"};}
+
+		dest = res;
+	}
+
+	void finalize(uint64_t& dest, std::string const& src)
+	{
+		dest = std::stoull(src);
+	}
+
+
+	void finalize(float& dest, std::string const& src)
+	{
+		dest = std::stof(src);
+	}
+
+	void finalize(double& dest, std::string const& src)
+	{
+		dest = std::stod(src);
+	}
+
+	void finalize(std::string& dest, std::string&& src)
 	{
 		dest = std::move(src);
 	}
@@ -42,7 +105,14 @@ namespace anon::object_loader_detail
 	template<class Dest>
 	void finalize(std::vector<Dest>& dest, std::string&& src)
 	{
-		dest.push_back(std::move(src));
+		if constexpr(std::is_same_v<std::string, Dest>)
+		{ dest.push_back(std::move(src)); }
+		else
+		{
+			Dest tmp;
+			finalize(tmp, src);
+			dest.push_back(std::move(tmp));
+		}
 	}
 
 	void finalize(std::vector<object>&, std::string&&){}
@@ -63,7 +133,14 @@ namespace anon::object_loader_detail
 	template<class Dest>
 	void append(std::vector<Dest>& dest, std::string&& src)
 	{
-		dest.push_back(std::move(src));
+		if constexpr(std::is_same_v<std::string, Dest>)
+		{dest.push_back(std::move(src));}
+		else
+		{
+			Dest tmp;
+			finalize(tmp, src);
+			dest.push_back(std::move(tmp));
+		}
 	}
 
 	void append(std::vector<object>, std::string&&)
@@ -82,8 +159,6 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 	}
 
 	auto const val = *input;
-	putchar(val);
-	fflush(stdout);
 
 	switch(ctxt.current_state)
 	{

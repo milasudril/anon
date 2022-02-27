@@ -9,13 +9,22 @@
 #include <vector>
 #include <cstdint>
 #include <stdexcept>
+#include <cstdint>
 
 namespace anon
 {
 	class object
 	{
 	public:
-		using mapped_type = std::variant<object, std::string, std::vector<object>, std::vector<std::string>>;
+		using mapped_type = std::variant<
+			int32_t, std::vector<int32_t>,
+			int64_t, std::vector<int64_t>,
+			uint32_t, std::vector<uint32_t>,
+			uint64_t, std::vector<uint64_t>,
+			float, std::vector<float>,
+			double, std::vector<double>,
+			std::string, std::vector<std::string>,
+			object, std::vector<object>>;
 
 		using key_type = key;
 

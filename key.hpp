@@ -15,8 +15,11 @@ namespace anon
 		if(str.starts_with("__"))
 		{ return false; }
 
+		if(std::size(str)!=0 && (*std::begin(str)>='0' && *std::begin(str) <= '9'))
+		{ return false; }
+
 		return std::all_of(std::begin(str), std::end(str), [](auto const item) {
-			return (item>= 'a' && item <='z') || item == '_';
+			return (item>= 'a' && item <='z') || item == '_' || (item>='0' && item <= '9');
 		});
 	}
 
