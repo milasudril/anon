@@ -39,6 +39,7 @@ obj{
 	an_array_of_objects: obj...{
 		foobar:str...{A\;B\;C\}
 		kaka:str...{D\;E\;F\}\;
+
 		second_obj:str{Hello world\}
 	\}
 	an_i32: i32{1\}
