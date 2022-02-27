@@ -6,6 +6,7 @@
 #include "./object.hpp"
 
 #include <stack>
+#include <filesystem>
 
 namespace anon
 {
@@ -57,6 +58,17 @@ namespace anon
 	inline object load(FILE* src)
 	{
 		return load(cfile_reader{src});
+	}
+
+	inline object load(std::filesystem::path const& path)
+	{
+		auto file_deleter = [](FILE* f){ return fclose(f); };
+		std::unique_ptr<FILE, decltype(file_deleter)> src{fopen(path.c_str(), "rb")};
+		if(src == nullptr)
+		{
+			throw std::runtime_error{std::string{"Failed to open file "}.append(path)};
+		}
+		return load(src.get());
 	}
 }
 
