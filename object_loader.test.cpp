@@ -35,13 +35,13 @@ obj{
 		\}
 	\}
 	an_array_of_strings: str...{First string\;Second stirng\;Third string\}
+	an_array_of_objects: obj...{
+		foobar:str...{A\;B\;C\}
+		kaka:str...{D\;E\;F\}\;
+		second_obj:str{Hello world\}
+	\}
+	a_second_key: str{foobar\}
 \}
 blah)"});
 	printf("%zu\n", std::size(obj));
-#if 0
-		an_array_of_objects: obj...{
-		foobar:str...{A\;B\;C\}\;
-		kaka:str...{D\;E\;F\}
-	\}
-#endif
 }

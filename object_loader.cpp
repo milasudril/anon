@@ -7,6 +7,9 @@ std::pair<anon::parser_context::state, anon::object::mapped_type> anon::state_fr
 	if(buffer == "obj")
 	{ return std::pair{parser_context::state::key, object{}}; }
 
+	if(buffer == "obj...")
+	{ return std::pair{parser_context::state::key, std::vector<object>{}};}
+
 	if(buffer == "str")
 	{ return std::pair{parser_context::state::value, std::string{}}; }
 
@@ -42,11 +45,16 @@ namespace anon::object_loader_detail
 		dest.push_back(std::move(src));
 	}
 
+	void finalize(std::vector<object>&, std::string&&){}
+
 	void finalize(object&, std::string&&)
 	{
 	}
 
 	template<class Dest>
+	requires(!std::ranges::range<Dest>
+		|| std::is_same_v<std::decay_t<Dest>, std::string>
+		|| std::is_same_v<std::decay_t<Dest>, object>)
 	void append(Dest&, std::string&&)
 	{
 		throw std::runtime_error{"Multiple values require an array"};
@@ -57,6 +65,9 @@ namespace anon::object_loader_detail
 	{
 		dest.push_back(std::move(src));
 	}
+
+	void append(std::vector<object>, std::string&&)
+	{}
 }
 
 anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
@@ -72,6 +83,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 
 	auto const val = *input;
 	putchar(val);
+	fflush(stdout);
 
 	switch(ctxt.current_state)
 	{
@@ -95,6 +107,11 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					ctxt.current_node.second = std::move(value);
 					ctxt.current_state = state;
 					ctxt.buffer.clear();
+					if(std::holds_alternative<std::vector<object>>(ctxt.current_node.second))
+					{
+						ctxt.parent_nodes.push(std::move(ctxt.current_node));
+						ctxt.current_node.second = object{};
+					}
 					break;
 				}
 
@@ -120,6 +137,11 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					ctxt.current_node.second = std::move(value);
 					ctxt.current_state = state;
 					ctxt.buffer.clear();
+					if(std::holds_alternative<std::vector<object>>(ctxt.current_node.second))
+					{
+						ctxt.parent_nodes.push(std::move(ctxt.current_node));
+						ctxt.current_node.second = object{};
+					}
 					break;
 				}
 				default:
@@ -205,6 +227,13 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 						object_loader_detail::finalize(val, std::move(buffer));
 					}, ctxt.current_node.second);
 
+					if(auto item = std::get_if<std::vector<object>>(&ctxt.parent_nodes.top().second); item != nullptr)
+					{
+						item->push_back(std::move(std::get<object>(ctxt.current_node.second)));
+						ctxt.current_node = std::move(ctxt.parent_nodes.top());
+						ctxt.parent_nodes.pop();
+					}
+
 					auto top_of_stack = std::move(ctxt.parent_nodes.top());
 					ctxt.parent_nodes.pop();
 					std::get<object>(top_of_stack.second).insert(std::move(ctxt.current_node.first), std::move(ctxt.current_node.second));
@@ -220,9 +249,16 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 				}
 
 				case ';':
-					std::visit([buffer = std::move(ctxt.buffer)](auto& val) mutable {
-						object_loader_detail::append(val, std::move(buffer));
-					}, ctxt.current_node.second);
+					if(auto item = std::get_if<std::vector<object>>(&ctxt.parent_nodes.top().second); item != nullptr)
+					{
+						item->push_back(std::move(std::get<object>(ctxt.current_node.second)));
+					}
+					else
+					{
+						std::visit([buffer = std::move(ctxt.buffer)](auto& val) mutable {
+							object_loader_detail::append(val, std::move(buffer));
+						}, ctxt.current_node.second);
+					}
 
 					ctxt.current_state = ctxt.prev_state;
 					break;
