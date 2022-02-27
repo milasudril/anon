@@ -42,6 +42,22 @@ namespace anon
 			}
 		}
 	}
+
+	struct cfile_reader
+	{
+		FILE* src;
+	};
+
+	inline std::optional<char> read_byte(cfile_reader src)
+	{
+		auto ch_in = getc(src.src);
+		return ch_in != EOF? static_cast<char>(ch_in): std::optional<char>{};
+	}
+
+	inline object load(FILE* src)
+	{
+		return load(cfile_reader{src});
+	}
 }
 
 #endif
