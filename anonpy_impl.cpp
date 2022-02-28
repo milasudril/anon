@@ -36,8 +36,23 @@ namespace
 		{
 			return to_int(obj);
 		}
+		throw std::runtime_error{std::string{"Unsupported type '"}.append(type).append("'")};
+	}
 
-		return anon::object::mapped_type{};
+	template<class T>
+	PyObject* from_value_impl(T const&)
+	{ throw std::runtime_error{"Unimplemented"};}
+
+	PyObject* from_value_impl(int32_t x)
+	{
+		return PyLong_FromLong(x);
+	}
+
+	PyObject* from_value(anon::object::mapped_type const& val)
+	{
+		return std::visit([](auto const& item){
+			return from_value_impl(item);
+		}, val);
 	}
 
 	anon::object* get_pointer(PyObject* args)
@@ -88,18 +103,42 @@ namespace
 		return Py_None;
 	}
 
+	PyObject* object_operator_brackets(PyObject*, PyObject* args)
+	{
+		try
+		{
+			PyObject* obj{};
+			char const* key{};
+			if(!PyArg_ParseTuple(args, "Os", &obj, &key))
+			{ return nullptr; }
+
+			auto self = reinterpret_cast<anon::object*>(PyLong_AsVoidPtr(obj));
+			auto& val = (*self)[key];
+			return from_value(val);
+		}
+		catch(std::exception const& err)
+		{
+			PyErr_SetString(PyExc_RuntimeError, err.what());
+			return nullptr;
+		}
+
+		return Py_None;
+	}
+
 	PyObject* object_destroy(PyObject*, PyObject* args)
 	{
 		delete get_pointer(args);
 		return Py_None;
 	}
 
-	constinit std::array<PyMethodDef, 5> method_table
+	constinit std::array<PyMethodDef, 6> method_table
 	{
 		PyMethodDef{"object_create", object_create, METH_VARARGS, ""},
 		PyMethodDef{"object_destroy", object_destroy, METH_VARARGS, ""},
 		PyMethodDef{"object_contains", object_contains, METH_VARARGS, ""},
 		PyMethodDef{"object_insert_or_assign", object_insert_or_assign, METH_VARARGS, ""},
+		PyMethodDef{"object_operator_brackets", object_operator_brackets, METH_VARARGS, ""},
+
 		PyMethodDef{nullptr, nullptr, 0, nullptr}
 	};
 

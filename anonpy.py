@@ -18,12 +18,19 @@ class object:
 
 	def insert_or_assign(self, key, value):
 		anonpy_impl.object_insert_or_assign(self.__handle, key, value)
+		return self
+
+	def __getitem__(self, key):
+		return anonpy_impl.object_operator_brackets(self.__handle, key)
 
 if __name__ == '__main__':
 	with object() as obj:
 		assert(not obj.contains('foobar'))
-		obj.insert_or_assign('foobar', 0xfffffffff)
+
+		obj.insert_or_assign('foobar', 1)
+
 		assert(obj.contains('foobar'))
+		assert(obj['foobar'] == 1)
 '''
 	anon::object obj;
 
