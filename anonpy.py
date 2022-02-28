@@ -23,6 +23,9 @@ class object:
 	def __getitem__(self, key):
 		return anonpy_impl.object_operator_brackets(self.__handle, key)
 
+	def size(self):
+		return anonpy_impl.object_size(self.__handle)
+
 if __name__ == '__main__':
 	with object() as obj:
 		assert(not obj.contains('foobar'))
@@ -31,19 +34,6 @@ if __name__ == '__main__':
 
 		assert(obj.contains('foobar'))
 		assert(obj['foobar'] == 1)
-'''
-	anon::object obj;
+		assert(obj.size() == 1)
 
-	obj.insert_or_assign("foobar", 1);
-
-	EXPECT_EQ(std::get<int64_t>(obj["foobar"]), 1);
-	EXPECT_EQ(std::size(obj), 1);
-	EXPECT_EQ(std::begin(obj)->first, "foobar");
-
-	obj.insert_or_assign("foobar", "kaka");
-
-	EXPECT_EQ(std::get<std::string>(obj["foobar"]), "kaka");
-	EXPECT_EQ(std::size(obj), 1);
-	EXPECT_EQ(std::begin(obj)->first, "foobar");
-'''
 

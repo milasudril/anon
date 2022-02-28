@@ -125,19 +125,26 @@ namespace
 		return Py_None;
 	}
 
+	PyObject* object_size(PyObject*, PyObject* args)
+	{
+		return PyLong_FromSize_t(std::size(*get_pointer(args)));
+	}
+
 	PyObject* object_destroy(PyObject*, PyObject* args)
 	{
 		delete get_pointer(args);
 		return Py_None;
 	}
 
-	constinit std::array<PyMethodDef, 6> method_table
+	constinit std::array<PyMethodDef, 7> method_table
 	{
 		PyMethodDef{"object_create", object_create, METH_VARARGS, ""},
 		PyMethodDef{"object_destroy", object_destroy, METH_VARARGS, ""},
 		PyMethodDef{"object_contains", object_contains, METH_VARARGS, ""},
 		PyMethodDef{"object_insert_or_assign", object_insert_or_assign, METH_VARARGS, ""},
 		PyMethodDef{"object_operator_brackets", object_operator_brackets, METH_VARARGS, ""},
+		PyMethodDef{"object_size", object_size, METH_VARARGS, ""},
+
 
 		PyMethodDef{nullptr, nullptr, 0, nullptr}
 	};
