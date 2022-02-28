@@ -12,29 +12,94 @@
 
 namespace
 {
-	PyObject* object_create(PyObject*, PyObject*)
+	anon::object::mapped_type to_int(PyObject& obj)
 	{
-		puts("Hej");
-		auto obj = new anon::object{};
-		return PyLong_FromVoidPtr(obj);
+		int overflow{};
+		auto val = PyLong_AsLongLongAndOverflow(&obj, &overflow);
+		if(overflow != 0)
+		{
+			throw std::out_of_range{"Integer value out of range"};
+		}
+
+		if(val >= static_cast<long long>(std::numeric_limits<int32_t>::min())
+			&& val <= static_cast<long long>(std::numeric_limits<int32_t>::max()))
+		{
+			return anon::object::mapped_type{static_cast<int32_t>(val)};
+		}
+		return anon::object::mapped_type{static_cast<int64_t>(val)};
 	}
 
-	PyObject* object_destroy(PyObject*, PyObject* args)
+	anon::object::mapped_type to_value(PyObject& obj)
 	{
-		puts("Då");
+		auto const type = std::string_view{Py_TYPE(&obj)->tp_name};
+		if(type == "int")
+		{
+			return to_int(obj);
+		}
+
+		return anon::object::mapped_type{};
+	}
+
+	anon::object* get_pointer(PyObject* args)
+	{
 		PyObject* val{};
 		if(!PyArg_ParseTuple(args, "O", &val))
 		{ return nullptr; }
 
-		auto ptr = reinterpret_cast<anon::object const*>(PyLong_AsVoidPtr(val));
-		delete ptr;
+		return reinterpret_cast<anon::object*>(PyLong_AsVoidPtr(val));
+	}
+
+	PyObject* object_create(PyObject*, PyObject*)
+	{
+		auto obj = new anon::object{};
+		return PyLong_FromVoidPtr(obj);
+	}
+
+	PyObject* object_contains(PyObject*, PyObject* args)
+	{
+		PyObject* obj{};
+		char const* key{};
+		if(!PyArg_ParseTuple(args, "Os", &obj, &key))
+		{ return nullptr; }
+
+		auto self = reinterpret_cast<anon::object*>(PyLong_AsVoidPtr(obj));
+		return self->contains(key) ? Py_True : Py_False;
+	}
+
+	PyObject* object_insert_or_assign(PyObject*, PyObject* args)
+	{
+		try
+		{
+			PyObject* obj{};
+			char const* key{};
+			PyObject* val{};
+			if(!PyArg_ParseTuple(args, "OsO", &obj, &key, &val))
+			{ return nullptr; }
+
+			auto self = reinterpret_cast<anon::object*>(PyLong_AsVoidPtr(obj));
+			self->insert_or_assign(anon::key{key}, to_value(*val));
+		}
+		catch(std::exception const& err)
+		{
+			PyErr_SetString(PyExc_RuntimeError, err.what());
+			return nullptr;
+		}
+
 		return Py_None;
 	}
 
-	constinit std::array<PyMethodDef, 3> method_table
+	PyObject* object_destroy(PyObject*, PyObject* args)
 	{
-		PyMethodDef{"object_create", object_create, METH_VARARGS, "Creates an object"},
-		PyMethodDef{"object_destroy", object_destroy, METH_VARARGS, "Destroys an object"},
+		delete get_pointer(args);
+		return Py_None;
+	}
+
+	constinit std::array<PyMethodDef, 5> method_table
+	{
+		PyMethodDef{"object_create", object_create, METH_VARARGS, ""},
+		PyMethodDef{"object_destroy", object_destroy, METH_VARARGS, ""},
+		PyMethodDef{"object_contains", object_contains, METH_VARARGS, ""},
+		PyMethodDef{"object_insert_or_assign", object_insert_or_assign, METH_VARARGS, ""},
 		PyMethodDef{nullptr, nullptr, 0, nullptr}
 	};
 
