@@ -31,6 +31,7 @@ namespace anon
 	std::pair<parser_context::state, object::mapped_type> state_from_ctrl_word(std::string_view);
 
 	template<class Source>
+	requires(!std::is_same_v<Source, std::filesystem::path>)
 	object load(Source&& src)
 	{
 		parser_context ctxt;

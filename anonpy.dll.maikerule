@@ -1,4 +1,4 @@
 {
-	"target":{"name":"anonpy_impl.so"}
-	,"dependencies":[{"ref":"./anonpy_impl.o", "rel":"implementation"}]
+	"target":{"name":"anonpy.so"}
+	,"dependencies":[{"ref":"./anonpy.o", "rel":"implementation"}]
 }
