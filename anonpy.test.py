@@ -2,7 +2,7 @@
 
 import sys
 import sys
-sys.path.append('__targets')
+sys.path.append('__targets_dynlib')
 import anonpy
 
 if __name__ == '__main__':
