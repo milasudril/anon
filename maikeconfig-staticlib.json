@@ -10,24 +10,8 @@
         "compiler": {
           "config": {
             "cflags": [
-              "-g"
-            ],
-            "std_revision": {
-              "min": "c++20"
-            }
-          },
-          "recipe": "cxx_linker.py",
-          "use_get_tags": 0
-        },
-        "config": {},
-        "loader": "app"
-      },
-      "dll": {
-        "compiler": {
-          "config": {
-            "cflags": [
               "-g",
-              "-shared"
+              "-O3"
             ],
             "std_revision": {
               "min": "c++20"
@@ -44,10 +28,10 @@
           "config": {
             "cflags": [
               "-g",
+              "-O3",
               "-Wall",
               "-Wextra",
-              "-Werror",
-              "-fpic"
+              "-Werror"
             ],
             "iquote": [
               "."
@@ -71,6 +55,7 @@
             ],
             "cflags": [
               "-g",
+              "-O3",
               "-Wall",
               "-Wextra"
             ],
@@ -133,7 +118,6 @@
     "source_tree_loader": {
       "file_info_loaders": {
         ".app.maikerule": "app",
-        ".dll.maikerule": "dll",
         ".cpp": "cxx",
         ".hpp": "cxx",
         ".lib.maikerule": "lib",
