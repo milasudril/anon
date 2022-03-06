@@ -26,5 +26,4 @@ install: all make_pkgconfig.sh
 	    | while read in; do grep -v '^//@' "$$in" \
 	    > $(DESTDIR)$(PREFIX)/include/anon/$$in; done
 	./make_pkgconfig.sh $(PREFIX) $(DESTDIR)$(PREFIX)/lib/pkgconfig/anon.pc
-	cp __targets_dynlib/anonpy.so /usr/lib/python3/dist-packages/
-
+	cp __targets_dynlib/anonpy.so $(DESTDIR)$(PREFIX)/python3/dist-packages/
