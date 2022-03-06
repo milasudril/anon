@@ -20,10 +20,11 @@ install: all make_pkgconfig.sh
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(PREFIX)/include/anon
 	mkdir -p $(DESTDIR)$(PREFIX)/lib
-	mkdir -p $(DESTDIR)$(PREFIX)/lib/pkgconfig
 	cp __targets_staticlib/libanon.a $(DESTDIR)$(PREFIX)/lib/libanon.a
 	find -maxdepth 1 -name '*.hpp' \
 	    | while read in; do grep -v '^//@' "$$in" \
 	    > $(DESTDIR)$(PREFIX)/include/anon/$$in; done
+	mkdir -p $(DESTDIR)$(PREFIX)/lib/pkgconfig
 	./make_pkgconfig.sh $(PREFIX) $(DESTDIR)$(PREFIX)/lib/pkgconfig/anon.pc
+	mkdir -p $(DESTDIR)$(PREFIX)/lib/python3/dist-packages
 	cp __targets_dynlib/anonpy.so $(DESTDIR)$(PREFIX)/lib/python3/dist-packages/
