@@ -7,6 +7,7 @@
 
 #include <stack>
 #include <filesystem>
+#include <optional>
 
 namespace anon
 {
