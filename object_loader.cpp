@@ -106,10 +106,8 @@ namespace anon::object_loader_detail
 	void finalize(std::vector<Dest>&, std::string&& src)
 	{
 		if(std::size(src) != 0)
-		{ throw std::runtime_error{std::string{"Unterminated array value "}.append(std::move(src))}; }
+		{ throw std::runtime_error{std::string{"Non-terminated array element "}.append(std::move(src))}; }
 	}
-
-	void finalize(std::vector<object>&, std::string&&){}
 
 	void finalize(object&, std::string&&)
 	{
@@ -298,7 +296,9 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 
 					if(auto item = std::get_if<std::vector<object>>(&ctxt.parent_nodes.top().second); item != nullptr)
 					{
-					//	item->push_back(std::move(std::get<object>(ctxt.current_node.second)));
+						if(std::size(std::get<object>(ctxt.current_node.second)) != 0)
+						{ throw std::runtime_error{"Non-terminated array element"}; }
+
 						ctxt.current_node = std::move(ctxt.parent_nodes.top());
 						ctxt.parent_nodes.pop();
 					}
