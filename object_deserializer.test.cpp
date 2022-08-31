@@ -28,7 +28,7 @@ TESTCASE(anon_load)
 	buffer buff{R"(
 obj{
 	an_object: obj{
-		a_string: str{this is a test with \\ and { } \}
+		a_string: str{this is a test with ; \\ and { } \}
 		a_second_string: str{foobar\}
 		a_third_level: obj{
 			kaka:str{bulle\}
@@ -64,7 +64,7 @@ obj{
 	{
 		auto& an_object = std::get<anon::object>(obj["an_object"]);
 		EXPECT_EQ(std::size(an_object), 3);
-		EXPECT_EQ(std::get<std::string>(an_object["a_string"]), R"(this is a test with \ and { } )");
+		EXPECT_EQ(std::get<std::string>(an_object["a_string"]), R"(this is a test with ; \ and { } )");
 		EXPECT_EQ(std::get<std::string>(an_object["a_second_string"]), "foobar");
 		auto& a_third_level = std::get<anon::object>(an_object["a_third_level"]);
 		EXPECT_EQ(std::size(a_third_level), 1)
