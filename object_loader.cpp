@@ -103,16 +103,10 @@ namespace anon::object_loader_detail
 	}
 
 	template<class Dest>
-	void finalize(std::vector<Dest>& dest, std::string&& src)
+	void finalize(std::vector<Dest>&, std::string&& src)
 	{
-		if constexpr(std::is_same_v<std::string, Dest>)
-		{ dest.push_back(std::move(src)); }
-		else
-		{
-			Dest tmp;
-			finalize(tmp, src);
-			dest.push_back(std::move(tmp));
-		}
+		if(std::size(src) != 0)
+		{ throw std::runtime_error{std::string{"Unterminated array value "}.append(std::move(src))}; }
 	}
 
 	void finalize(std::vector<object>&, std::string&&){}
@@ -304,7 +298,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 
 					if(auto item = std::get_if<std::vector<object>>(&ctxt.parent_nodes.top().second); item != nullptr)
 					{
-						item->push_back(std::move(std::get<object>(ctxt.current_node.second)));
+					//	item->push_back(std::move(std::get<object>(ctxt.current_node.second)));
 						ctxt.current_node = std::move(ctxt.parent_nodes.top());
 						ctxt.parent_nodes.pop();
 					}
