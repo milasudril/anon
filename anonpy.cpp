@@ -7,7 +7,7 @@
 #include <Python.h>
 
 #include "./object.hpp"
-#include "./object_loader.hpp"
+#include "./object_deserializer.hpp"
 
 #include <array>
 

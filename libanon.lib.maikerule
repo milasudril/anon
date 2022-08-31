@@ -3,6 +3,6 @@
 	,"dependencies":[
 		{"ref":"key.hpp", "origin":"project"},
 		{"ref":"object.hpp", "origin":"project"},
-		{"ref":"object_loader.hpp", "origin":"project"}
+		{"ref":"object_deserializer.hpp", "origin":"project"}
 	]
 }

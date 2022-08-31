@@ -1,7 +1,7 @@
-//@	{"dependencies_extra":[{"ref":"./object_loader.o","rel":"implementation"}]}
+//@	{"dependencies_extra":[{"ref":"./object_deserializer.o","rel":"implementation"}]}
 
-#ifndef ANON_OBJECTLOADER_HPP
-#define ANON_OBJECTLOADER_HPP
+#ifndef ANON_OBJECTDESERIALIZER_HPP
+#define ANON_OBJECTDESERIALIZER_HPP
 
 #include "./object.hpp"
 
