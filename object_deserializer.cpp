@@ -1,6 +1,7 @@
 //@	{"target":{"name":"object_deserializer.o"}}
 
 #include "./object_deserializer.hpp"
+#include "./variant_helper.hpp"
 
 std::pair<anon::parser_context::state, anon::object::mapped_type> anon::state_from_ctrl_word(std::string_view buffer)
 {
