@@ -45,7 +45,7 @@ TESTCASE(anon_object_insert_and_assign)
 		obj.insert("kaka", 34);
 		testcaseFailed();
 	}
-	catch(...)
+	catch(*)
 	{}
 
 	try
@@ -54,7 +54,7 @@ TESTCASE(anon_object_insert_and_assign)
 		obj.assign("foobar", "nop");
 		testcaseFailed();
 	}
-	catch(...)
+	catch(*)
 	{
 	}
 }
@@ -68,7 +68,7 @@ TESTCASE(anon_object_key_access_not_found)
 		auto val = obj["foobar"];
 		testcaseFailed();
 	}
-	catch(...)
+	catch(*)
 	{}
 
 	EXPECT_EQ(obj.find("foobar") == std::end(obj), true);

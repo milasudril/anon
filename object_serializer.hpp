@@ -71,9 +71,9 @@ namespace anon
 		static constexpr auto make_namebuff()
 		{
 			constexpr auto N = strlen(type_info<T>::name());
-			std::array<char, N + 4> ret{};
+			std::array<char, N + 2> ret{};
 			std::copy_n(type_info<T>::name(), N, std::data(ret));
-			std::copy_n("...", 4, std::data(ret) + N);
+			std::copy_n("*", 2, std::data(ret) + N);
 			return ret;
 		}
 

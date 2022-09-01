@@ -7,49 +7,49 @@ std::pair<anon::parser_context::state, anon::object::mapped_type> anon::state_fr
 	if(buffer == "obj")
 	{ return std::pair{parser_context::state::key, object{}}; }
 
-	if(buffer == "obj...")
+	if(buffer == "obj*")
 	{ return std::pair{parser_context::state::key, std::vector<object>{}};}
 
 	if(buffer == "str")
 	{ return std::pair{parser_context::state::value, std::string{}}; }
 
-	if(buffer == "str...")
+	if(buffer == "str*")
 	{ return std::pair{parser_context::state::value, std::vector<std::string>{}}; }
 
 	if(buffer == "i32")
 	{ return std::pair{parser_context::state::value, int32_t{}}; }
 
-	if(buffer == "i32...")
+	if(buffer == "i32*")
 	{ return std::pair{parser_context::state::value, std::vector<int32_t>{}}; }
 
 	if(buffer == "i64")
 	{ return std::pair{parser_context::state::value, int64_t{}}; }
 
-	if(buffer == "i64...")
+	if(buffer == "i64*")
 	{ return std::pair{parser_context::state::value, std::vector<int64_t>{}}; }
 
 	if(buffer == "u32")
 	{ return std::pair{parser_context::state::value, uint32_t{}}; }
 
-	if(buffer == "u32...")
+	if(buffer == "u32*")
 	{ return std::pair{parser_context::state::value, std::vector<uint32_t>{}}; }
 
 	if(buffer == "u64")
 	{ return std::pair{parser_context::state::value, uint64_t{}}; }
 
-	if(buffer == "u64...")
+	if(buffer == "u64*")
 	{ return std::pair{parser_context::state::value, std::vector<uint64_t>{}}; }
 
 	if(buffer == "f32")
 	{ return std::pair{parser_context::state::value, float{}}; }
 
-	if(buffer == "f32...")
+	if(buffer == "f32*")
 	{ return std::pair{parser_context::state::value, std::vector<float>{}}; }
 
 	if(buffer == "f64")
 	{ return std::pair{parser_context::state::value, double{}}; }
 
-	if(buffer == "f64...")
+	if(buffer == "f64*")
 	{ return std::pair{parser_context::state::value, std::vector<double>{}}; }
 
 	throw std::runtime_error{std::string{"Unsupported type '"}.append(buffer).append("'")};
