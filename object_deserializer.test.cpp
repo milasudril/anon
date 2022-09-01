@@ -54,12 +54,14 @@ obj{
 	an_array_of_f32: f32...{1\;2\;3\;\}
 	an_f64: f64{1\}
 	an_array_of_f64: f64...{1\;2\;3\;\}
+	an_empty_array_1: i32...{\}
+	an_empty_array_2: obj...{\}
 \}blah)"};
 
 	auto obj = anon::load(buff);
 	EXPECT_EQ(*buff.ptr, 'b');
 
-	EXPECT_EQ(std::size(obj), 16);
+	EXPECT_EQ(std::size(obj), 18);
 
 	{
 		auto& an_object = std::get<anon::object>(obj["an_object"]);
@@ -116,4 +118,6 @@ obj{
 	EXPECT_EQ(std::get<int64_t>(obj["an_i64"]), 1);
 	EXPECT_EQ(std::get<float>(obj["an_f32"]), 1.0f);
 	EXPECT_EQ(std::get<double>(obj["an_f64"]), 1.0);
+	EXPECT_EQ(std::size(std::get<std::vector<int32_t>>(obj["an_empty_array_1"])), 0);
+	EXPECT_EQ(std::size(std::get<std::vector<anon::object>>(obj["an_empty_array_2"])), 0);
 }
