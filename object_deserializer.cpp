@@ -4,6 +4,8 @@
 #include "./variant_helper.hpp"
 #include "./type_info.hpp"
 
+#include <charconv>
+
 std::pair<anon::parser_context::state, anon::object::mapped_type> anon::state_from_ctrl_word(std::string_view buffer)
 {
 	using variant_type = object::mapped_type;
@@ -27,44 +29,37 @@ std::pair<anon::parser_context::state, anon::object::mapped_type> anon::state_fr
 
 namespace anon::object_loader_detail
 {
+	template<class T>
+	requires(std::is_floating_point_v<T> || std::is_integral_v<T>)
+	void finalize(T& value, std::string const& src)
+	{
+		auto const begin = std::data(src);
+		auto const end = begin + std::size(src);
+		auto res = std::from_chars(begin, end, value);
+		if(res.ec == std::errc{})
+		{
+		if(res.ptr != end)
+			{
+				throw std::runtime_error{"Junk after number"};
+			}
+			return;
+		}
+
+		switch(res.ec)
+		{
+			case std::errc::invalid_argument:
+				throw std::runtime_error{std::string{src}.append(" is not convertable to a number")};
+			case std::errc::result_out_of_range:
+				throw std::runtime_error{std::string{src}
+					.append(" does not fit in a ").append(type_info<T>::name())};
+			default:
+				__builtin_unreachable();
+		}
+	}
+
 	constexpr bool is_whitespace(char val)
 	{
 		return val >= '\0' && val<= ' ';
-	}
-
-	void finalize(int32_t& dest, std::string const& src)
-	{
-		dest = std::stoi(src);
-	}
-
-	void finalize(int64_t& dest, std::string const& src)
-	{
-		dest = std::stoll(src);
-	}
-
-	void finalize(uint32_t& dest, std::string const& src)
-	{
-		auto const res = std::stoull(src);
-		if(res >= 0xffffffffll)
-		{ throw std::out_of_range{"Value does not fit in uint32_t"};}
-
-		dest = res;
-	}
-
-	void finalize(uint64_t& dest, std::string const& src)
-	{
-		dest = std::stoull(src);
-	}
-
-
-	void finalize(float& dest, std::string const& src)
-	{
-		dest = std::stof(src);
-	}
-
-	void finalize(double& dest, std::string const& src)
-	{
-		dest = std::stod(src);
 	}
 
 	void finalize(std::string& dest, std::string&& src)
