@@ -2,58 +2,27 @@
 
 #include "./object_deserializer.hpp"
 #include "./variant_helper.hpp"
+#include "./type_info.hpp"
 
 std::pair<anon::parser_context::state, anon::object::mapped_type> anon::state_from_ctrl_word(std::string_view buffer)
 {
-	if(buffer == "obj")
-	{ return std::pair{parser_context::state::key, object{}}; }
+	using variant_type = object::mapped_type;
+	auto const index
+		= variant_helper::find_type<variant_type>([buffer]<class T>(variant_helper::empty<T>){
+		return buffer == type_info<T>::name();
+	});
 
-	if(buffer == "obj*")
-	{ return std::pair{parser_context::state::key, std::vector<object>{}};}
+	if(index == std::variant_npos)
+	{
+		throw std::runtime_error{std::string{"Unsupported type '"}.append(buffer).append("'")};
+	}
 
-	if(buffer == "str")
-	{ return std::pair{parser_context::state::value, std::string{}}; }
+	std::pair<anon::parser_context::state, variant_type> ret{};
+	variant_helper::on_type_index<variant_type>(index, [&ret]<class T>(variant_helper::empty<T>){
+		ret = std::pair{type_info<T>::parser_init_state(), T{}};
+	});
 
-	if(buffer == "str*")
-	{ return std::pair{parser_context::state::value, std::vector<std::string>{}}; }
-
-	if(buffer == "i32")
-	{ return std::pair{parser_context::state::value, int32_t{}}; }
-
-	if(buffer == "i32*")
-	{ return std::pair{parser_context::state::value, std::vector<int32_t>{}}; }
-
-	if(buffer == "i64")
-	{ return std::pair{parser_context::state::value, int64_t{}}; }
-
-	if(buffer == "i64*")
-	{ return std::pair{parser_context::state::value, std::vector<int64_t>{}}; }
-
-	if(buffer == "u32")
-	{ return std::pair{parser_context::state::value, uint32_t{}}; }
-
-	if(buffer == "u32*")
-	{ return std::pair{parser_context::state::value, std::vector<uint32_t>{}}; }
-
-	if(buffer == "u64")
-	{ return std::pair{parser_context::state::value, uint64_t{}}; }
-
-	if(buffer == "u64*")
-	{ return std::pair{parser_context::state::value, std::vector<uint64_t>{}}; }
-
-	if(buffer == "f32")
-	{ return std::pair{parser_context::state::value, float{}}; }
-
-	if(buffer == "f32*")
-	{ return std::pair{parser_context::state::value, std::vector<float>{}}; }
-
-	if(buffer == "f64")
-	{ return std::pair{parser_context::state::value, double{}}; }
-
-	if(buffer == "f64*")
-	{ return std::pair{parser_context::state::value, std::vector<double>{}}; }
-
-	throw std::runtime_error{std::string{"Unsupported type '"}.append(buffer).append("'")};
+	return ret;
 }
 
 namespace anon::object_loader_detail

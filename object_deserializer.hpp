@@ -4,6 +4,7 @@
 #define ANON_OBJECTDESERIALIZER_HPP
 
 #include "./object.hpp"
+#include "./type_info.hpp"
 
 #include <stack>
 #include <filesystem>
@@ -13,7 +14,7 @@ namespace anon
 {
 	struct parser_context
 	{
-		enum class state:int{init, type_tag, after_type_tag, key, after_key, ctrl_char, value};
+		using state = parser_state;
 
 		state current_state{state::init};
 		state prev_state{state::init};
