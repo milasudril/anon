@@ -46,7 +46,9 @@ namespace anon::variant_helper
 		{
 			using current_type = std::variant_alternative_t<N - 1, Variant>;
 			values[N - 1] = [](Callback&& cb, Args&&... args){
-				std::move(cb)(empty<current_type>{}, std::move(args)...);
+				std::invoke(std::forward<Callback>(cb),
+					empty<current_type>{},
+					std::forward<Args>(args)...);
 			};
 			assign_callback<Variant, N - 1>(values);
 		}
