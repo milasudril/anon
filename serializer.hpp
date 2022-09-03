@@ -194,6 +194,16 @@ namespace anon
 	}
 
 	/**
+	 * \brief Stores obj to dest
+	 *
+	 * \ingroup serialization
+	 */
+	inline void store(object const& obj, FILE* dest)
+	{
+		store(obj, cfile_writer{dest});
+	}
+
+	/**
 	 * \brief Stores obj to path
 	 *
 	 * \note If the file already exists, it is overwritten
@@ -208,7 +218,7 @@ namespace anon
 		{
 			throw std::runtime_error{std::string{"Failed to open file "}.append(path)};
 		}
-		store(obj, cfile_writer{sink.get()});
+		store(obj, sink.get());
 	}
 
 	/**
