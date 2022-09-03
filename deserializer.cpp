@@ -1,6 +1,6 @@
-//@	{"target":{"name":"object_deserializer.o"}}
+//@	{"target":{"name":"deserializer.o"}}
 
-#include "./object_deserializer.hpp"
+#include "./deserializer.hpp"
 #include "./variant_helper.hpp"
 #include "./type_info.hpp"
 
@@ -104,8 +104,8 @@ namespace
 	{}
 }
 
-anon::object_loader_detail::parse_result
-anon::object_loader_detail::update(std::optional<char> input, parser_context& ctxt)
+anon::deserializer_detail::parse_result
+anon::deserializer_detail::update(std::optional<char> input, parser_context& ctxt)
 {
 	if(!input.has_value())
 	{
@@ -113,7 +113,7 @@ anon::object_loader_detail::update(std::optional<char> input, parser_context& ct
 		{
 			throw std::runtime_error{"Input data contains an non-terminated value"};
 		}
-		return anon::object_loader_detail::parse_result::done;
+		return anon::deserializer_detail::parse_result::done;
 	}
 
 	auto const val = *input;

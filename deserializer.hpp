@@ -1,12 +1,12 @@
-//@	{"dependencies_extra":[{"ref":"./object_deserializer.o","rel":"implementation"}]}
+//@	{"dependencies_extra":[{"ref":"./deserializer.o","rel":"implementation"}]}
 
-#ifndef ANON_OBJECTDESERIALIZER_HPP
-#define ANON_OBJECTDESERIALIZER_HPP
+#ifndef ANON_DESERIALIZER_HPP
+#define ANON_DESERIALIZER_HPP
 
 /**
- * \file object_deserializer.hpp
+ * \file deserializer.hpp
  *
- * \brief Contains declarations and definitions regarding object de-serialization
+ * \brief Contains declarations and definitions regarding de-serialization
  */
 
 #include "./object.hpp"
@@ -22,7 +22,7 @@
 
 namespace anon
 {
-	namespace object_loader_detail
+	namespace deserializer_detail
 	{
 		/**
 		* \brief Holds the current parsing context
@@ -66,11 +66,11 @@ namespace anon
 	requires(!std::is_same_v<Source, std::filesystem::path>)
 	object load(Source&& src)
 	{
-		object_loader_detail::parser_context ctxt;
+		deserializer_detail::parser_context ctxt;
 
 		while(true)
 		{
-			if(update(read_byte(src), ctxt) == object_loader_detail::parse_result::done)
+			if(update(read_byte(src), ctxt) == deserializer_detail::parse_result::done)
 			{
 				return std::get<object>(ctxt.current_node.second);
 			}

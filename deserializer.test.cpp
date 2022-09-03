@@ -1,6 +1,6 @@
-//@	{"target":{"name":"object_loader.test"}}
+//@	{"target":{"name":"deserializer.test"}}
 
-#include "./object_deserializer.hpp"
+#include "./deserializer.hpp"
 
 #include "testfwk/testfwk.hpp"
 
