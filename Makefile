@@ -13,6 +13,11 @@ staticlib:
 clean:
 	rm -rf __targets*
 
+.PHONY: doc
+doc:
+	rm -rf __targets_doc
+	doxygen
+
 DESTDIR?=""
 PREFIX?="/usr"
 .PHONY: install
