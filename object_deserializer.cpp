@@ -237,6 +237,8 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					break;
 
 				default:
+					if(val == '\0')
+					{ throw std::runtime_error{"Null character detected in input stream"}; }
 					ctxt.buffer += val;
 			}
 			break;
@@ -298,6 +300,8 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					break;
 
 				default:
+					if(val == '\0')
+					{ throw std::runtime_error{"Null character detected in input stream"}; }
 					ctxt.buffer += val;
 					ctxt.current_state = ctxt.prev_state;
 			}

@@ -88,6 +88,9 @@ namespace anon
 	void store_body(std::string_view value, Sink&& sink)
 	{
 		std::ranges::for_each(value, [&sink](auto item) {
+			if(item == '\0')
+			{ throw std::runtime_error{"Cannot serialize null characters"}; }
+
 			if(item == '\\')
 			{ write('\\', sink); }
 			write(item, sink);
