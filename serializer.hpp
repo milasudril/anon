@@ -17,7 +17,7 @@
 #include <cstring>
 
 /**
- * \defgroup serialization
+ * \defgroup serialization Serialization
  */
 
 namespace anon
@@ -39,7 +39,7 @@ namespace anon
 	};
 
 	/**
-	 * \brief Writes item to sink, within `<type_name>{` and `\}`
+	 * \brief Writes item to sink, within type_info<Entity>::name()`{` and `\}`
 	 *
 	 * \ingroup serialization
 	 */

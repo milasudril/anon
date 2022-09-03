@@ -1,10 +1,11 @@
 #ifndef ANON_VARIANTHELPER_HPP
 #define ANON_VARIANTHELPER_HPP
 
-#include <variant>
 #include <array>
 #include <cstddef>
+#include <functional>
 #include <type_traits>
+#include <variant>
 
 namespace anon::variant_helper
 {

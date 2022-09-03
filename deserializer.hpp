@@ -17,7 +17,7 @@
 #include <optional>
 
 /**
- * \defgroup de-serialization
+ * \defgroup de-serialization De-serialization
  */
 
 namespace anon
@@ -103,7 +103,7 @@ namespace anon
 	/**
 	 * \brief An adapter to make it possible to use the C file API when loading objects
 	 *
-	 * \ingroup de-serialization
+	 * \ingroup de-serialization De-serialization
 	 */
 	struct cfile_reader
 	{

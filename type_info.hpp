@@ -1,9 +1,21 @@
 #ifndef ANON_TYPENAME_HPP
 #define ANON_TYPENAME_HPP
 
+/**
+ * \file type_info.hpp
+ *
+ * \brief Contains mappings between types and initial parser states + type names
+ */
+
 #include "./object.hpp"
 
-#include <cstring>
+/**
+ * \defgroup type_info Type information
+ *
+ * \brief This module contains type information used during \ref serialization and
+ * \ref de-serialization
+ *
+ */
 
 namespace anon
 {
@@ -11,6 +23,16 @@ namespace anon
 
 	template<class T>
 	struct type_info;
+
+	constexpr size_t strlen(char const* str)
+	{
+		auto start = str;
+		while(*str != '\0')
+		{
+			++str;
+		}
+		return static_cast<size_t>(str - start);
+	}
 
 
 	template<>
