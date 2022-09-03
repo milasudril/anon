@@ -1,6 +1,7 @@
-//@	{"target":{"name":"object_serialzer.test"}}
+//@	{"target":{"name":"serialzer.test"}}
 
-#include "./object_serializer.hpp"
+#include "./serializer.hpp"
+
 #include "./deserializer.hpp"
 
 #include "testfwk/testfwk.hpp"

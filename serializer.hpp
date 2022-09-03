@@ -1,5 +1,5 @@
-#ifndef ANON_OBJECTSERIALIZER_HPP
-#define ANON_OBJECTSERIALIZER_HPP
+#ifndef ANON_SERIALIZER_HPP
+#define ANON_SERIALIZER_HPP
 
 #include "./type_info.hpp"
 
