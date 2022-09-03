@@ -1,15 +1,15 @@
 #ifndef ANON_PROPERTYNAME_HPP
 #define ANON_PROPERTYNAME_HPP
 
-#include <algorithm>
-#include <string>
-#include <stdexcept>
-
 /**
  * \file property_name.hpp
  *
  * \brief Contains the definition of the class property_name, and its associated functions
  */
+
+#include <algorithm>
+#include <string>
+#include <stdexcept>
 
 /**
  * \defgroup property_names Property names
