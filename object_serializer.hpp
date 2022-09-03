@@ -40,6 +40,10 @@ namespace anon
 	requires(!std::is_same_v<Sink, std::filesystem::path>)
 	void store_body(std::string_view value, Sink&& sink);
 
+	template<class Sink>
+	requires(!std::is_same_v<Sink, std::filesystem::path>)
+	void store_body(key const& value, Sink&& sink)
+	{ write(value.c_str(), sink); }
 
 
 	template<class Sink>
@@ -47,7 +51,7 @@ namespace anon
 	void store_body(object const& obj, Sink&& sink)
 	{
 		std::ranges::for_each(obj, [&sink](auto const& item){
-			write(item.first.c_str(), sink);
+			store_body(item.first, sink);
 			write(':', sink);
 			std::visit([&sink](auto const& item) {
 				store(item, sink);
