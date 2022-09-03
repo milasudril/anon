@@ -48,7 +48,7 @@ namespace anon::object_loader_detail
 		switch(res.ec)
 		{
 			case std::errc::invalid_argument:
-				throw std::runtime_error{std::string{src}.append(" is not convertable to a number")};
+				throw std::runtime_error{std::string{src}.append(" is not convertible to a number")};
 			case std::errc::result_out_of_range:
 				throw std::runtime_error{std::string{src}
 					.append(" does not fit in a ").append(type_info<T>::name())};
