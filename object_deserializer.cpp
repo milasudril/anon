@@ -6,29 +6,29 @@
 
 #include <charconv>
 
-std::pair<anon::parser_context::state, anon::object::mapped_type> anon::state_from_ctrl_word(std::string_view buffer)
+namespace
 {
-	using variant_type = object::mapped_type;
-	auto const index
-		= variant_helper::find_type<variant_type>([buffer]<class T>(variant_helper::empty<T>){
-		return buffer == type_info<T>::name();
-	});
-
-	if(index == std::variant_npos)
+	auto state_type_name(std::string_view buffer)
 	{
-		throw std::runtime_error{std::string{"Unsupported type '"}.append(buffer).append("'")};
+		using variant_type = anon::object::mapped_type;
+		auto const index
+			= anon::variant_helper::find_type<variant_type>([buffer]<class T>(anon::variant_helper::empty<T>){
+			return buffer == anon::type_info<T>::name();
+		});
+
+		if(index == std::variant_npos)
+		{
+			throw std::runtime_error{std::string{"Unsupported type '"}.append(buffer).append("'")};
+		}
+
+		std::pair<anon::parser_state, variant_type> ret{};
+		anon::variant_helper::on_type_index<variant_type>(index, [&ret]<class T>(anon::variant_helper::empty<T>){
+			ret = std::pair{anon::type_info<T>::parser_init_state(), T{}};
+		});
+
+		return ret;
 	}
 
-	std::pair<anon::parser_context::state, variant_type> ret{};
-	variant_helper::on_type_index<variant_type>(index, [&ret]<class T>(variant_helper::empty<T>){
-		ret = std::pair{type_info<T>::parser_init_state(), T{}};
-	});
-
-	return ret;
-}
-
-namespace anon::object_loader_detail
-{
 	template<class T>
 	requires(std::is_floating_point_v<T> || std::is_integral_v<T>)
 	void finalize(T& value, std::string const& src)
@@ -51,7 +51,7 @@ namespace anon::object_loader_detail
 				throw std::runtime_error{std::string{src}.append(" is not convertible to a number")};
 			case std::errc::result_out_of_range:
 				throw std::runtime_error{std::string{src}
-					.append(" does not fit in a ").append(type_info<T>::name())};
+					.append(" does not fit in a ").append(anon::type_info<T>::name())};
 			default:
 				__builtin_unreachable();
 		}
@@ -74,14 +74,14 @@ namespace anon::object_loader_detail
 		{ throw std::runtime_error{std::string{"Non-terminated array element "}.append(std::move(src))}; }
 	}
 
-	void finalize(object&, std::string&&)
+	void finalize(anon::object&, std::string&&)
 	{
 	}
 
 	template<class Dest>
 	requires(!std::ranges::range<Dest>
 		|| std::is_same_v<std::decay_t<Dest>, std::string>
-		|| std::is_same_v<std::decay_t<Dest>, object>)
+		|| std::is_same_v<std::decay_t<Dest>, anon::object>)
 	void append(Dest&, std::string&&)
 	{
 		throw std::runtime_error{"Multiple values require an array"};
@@ -100,11 +100,12 @@ namespace anon::object_loader_detail
 		}
 	}
 
-	void append(std::vector<object>, std::string&&)
+	void append(std::vector<anon::object>, std::string&&)
 	{}
 }
 
-anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
+anon::object_loader_detail::parse_result
+anon::object_loader_detail::update(std::optional<char> input, parser_context& ctxt)
 {
 	if(!input.has_value())
 	{
@@ -112,7 +113,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 		{
 			throw std::runtime_error{"Input data contains an non-terminated value"};
 		}
-		return anon::parse_result::done;
+		return anon::object_loader_detail::parse_result::done;
 	}
 
 	auto const val = *input;
@@ -120,7 +121,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 	switch(ctxt.current_state)
 	{
 		case parser_context::state::init:
-			if(!object_loader_detail::is_whitespace(val))
+			if(!is_whitespace(val))
 			{
 				ctxt.current_state = parser_context::state::type_tag;
 				ctxt.buffer += val;
@@ -133,7 +134,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 				case '{':
 				{
 					++ctxt.level;
-					auto [state, value] = state_from_ctrl_word(ctxt.buffer);
+					auto [state, value] = state_type_name(ctxt.buffer);
 					ctxt.parent_nodes.push(std::move(ctxt.current_node));
 					ctxt.current_node.first = property_name{ctxt.current_key};
 					ctxt.current_node.second = std::move(value);
@@ -148,7 +149,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 				}
 
 				default:
-					if(object_loader_detail::is_whitespace(val))
+					if(is_whitespace(val))
 					{
 						ctxt.current_state = parser_context::state::after_type_tag;
 					}
@@ -163,7 +164,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 				case '{':
 				{
 					++ctxt.level;
-					auto [state, value] = state_from_ctrl_word(ctxt.buffer);
+					auto [state, value] = state_type_name(ctxt.buffer);
 					ctxt.parent_nodes.push(std::move(ctxt.current_node));
 					ctxt.current_node.first = property_name{ctxt.current_key};
 					ctxt.current_node.second = std::move(value);
@@ -177,7 +178,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					break;
 				}
 				default:
-					if(!object_loader_detail::is_whitespace(val))
+					if(!is_whitespace(val))
 					{
 						throw std::runtime_error{"Junk after type tag"};
 					}
@@ -198,7 +199,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					break;
 
 				default:
-					if(object_loader_detail::is_whitespace(val))
+					if(is_whitespace(val))
 					{
 						if(std::size(ctxt.buffer) != 0)
 						{
@@ -221,7 +222,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					break;
 
 				default:
-					if(!object_loader_detail::is_whitespace(val))
+					if(!is_whitespace(val))
 					{
 						throw std::runtime_error{"Junk after key"};
 					}
@@ -258,7 +259,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					{ return parse_result::done; }
 
 					std::visit([buffer = std::move(ctxt.buffer)](auto& val) mutable {
-						object_loader_detail::finalize(val, std::move(buffer));
+						finalize(val, std::move(buffer));
 					}, ctxt.current_node.second);
 
 					if(auto item = std::get_if<std::vector<object>>(&ctxt.parent_nodes.top().second); item != nullptr)
@@ -292,7 +293,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					else
 					{
 						std::visit([buffer = std::move(ctxt.buffer)](auto& val) mutable {
-							object_loader_detail::append(val, std::move(buffer));
+							append(val, std::move(buffer));
 						}, ctxt.current_node.second);
 					}
 

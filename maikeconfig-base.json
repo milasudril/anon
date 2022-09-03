@@ -127,7 +127,8 @@
       },
       "fullpath_input_filter": [
         "^\\.",
-        "^__"
+        "^__",
+        "doxygen-awesome-css"
       ],
       "input_filter": [
         "^\\.",
