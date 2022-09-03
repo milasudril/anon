@@ -38,27 +38,67 @@ namespace anon
 		{ write(std::declval<char const*>(), a) } -> std::same_as<void>;
 	};
 
+	/**
+	 * \brief Writes item to sink, within `<type_name>{` and `\}`
+	 *
+	 * \ingroup serialization
+	 */
 	template<class Entity, sink Sink>
 	void store(Entity const& item, Sink&& sink);
 
+	/**
+	 * \brief Writes obj to sink
+	 *
+	 * \ingroup serialization
+	 */
 	template<sink Sink>
 	void store_body(object const& obj, Sink&& sink);
 
+	/**
+	 * \brief Writes `array` to sink
+	 *
+	 * This function writes `array` to sink. To separate the elements, the sequence `\;` is written
+	 * directly after the element.
+	 *
+	 * \note Array elements are written using store_body, rather than store
+	 *
+	 * \ingroup serialization
+	 */
 	template<class T, sink Sink>
 	void store_body(std::vector<T> const& array, Sink&& sink);
 
+	/**
+	 * \brief Writes value to sink
+	 *
+	 * \ingroup serialization
+	 */
 	template<std::integral T, sink Sink>
 	void store_body(T value, Sink&& sink);
 
+	/**
+	 * \brief Writes value to sink
+	 *
+	 * \ingroup serialization
+	 */
 	template<std::floating_point T, sink Sink>
 	void store_body(T value, Sink&& sink);
 
-	template<class Entity, sink Sink>
-	void store(Entity const& item, Sink&& sink);
-
+	/**
+	 * \brief Writes value to sink
+	 *
+	 * This function writes a string `value` to sink. Any `\` is escaped with `\\`. If there is a
+	 * null character in `value`, an exception is thrown.
+	 *
+	 * \ingroup serialization
+	 */
 	template<sink Sink>
 	void store_body(std::string_view value, Sink&& sink);
 
+	/**
+	 * \brief Writes value to sink.
+	 *
+	 * \ingroup serialization
+	 */
 	template<sink Sink>
 	void store_body(property_name const& value, Sink&& sink)
 	{ write(value.c_str(), sink); }
@@ -123,22 +163,43 @@ namespace anon
 		write("\\}", sink);
 	}
 
+	/**
+	 * \brief An adapter to make it possible to use the C file API when storing objects
+	 *
+	 * \ingroup serialization
+	 */
 	struct cfile_writer
 	{
 		FILE* sink;
 	};
 
+	/**
+	 * \brief Writes ch to the stream referred to by writer
+	 *
+	 * \ingroup serialization
+	 */
 	inline void write(char ch, cfile_writer writer)
 	{
 		putc(ch, writer.sink);
 	}
 
+	/**
+	 * \brief Writes buffer to the stream referred to by writer
+	 *
+	 * \ingroup serialization
+	 */
 	inline void write(char const* buffer, cfile_writer writer)
 	{
 		fputs(buffer, writer.sink);
 	}
 
-
+	/**
+	 * \brief Stores obj to path
+	 *
+	 * \note If the file already exists, it is overwritten
+	 *
+	 * \ingroup serialization
+	 */
 	inline void store(object const& obj, std::filesystem::path const& path)
 	{
 		auto file_deleter = [](FILE* f){ return fclose(f); };
@@ -150,26 +211,46 @@ namespace anon
 		store(obj, cfile_writer{sink.get()});
 	}
 
+	/**
+	 * \brief An adapter to make it possible to write objects to an std::string
+	 *
+	 * \ingroup serialization
+	 */
 	struct string_writer
 	{
-		std::string buffer;
+		std::reference_wrapper<std::string> buffer;
 	};
 
-	void write(char ch, string_writer& buff)
+	/**
+	 * \brief Writes ch to the string referred to by writer
+	 *
+	 * \ingroup serialization
+	 */
+	void write(char ch, string_writer writer)
 	{
-		buff.buffer += ch;
+		writer.buffer.get() += ch;
 	}
 
-	void write(char const* data, string_writer& buff)
+	/**
+	 * \brief Writes data to the string referred to by writer
+	 *
+	 * \ingroup serialization
+	 */
+	void write(char const* data, string_writer writer)
 	{
-		buff.buffer += data;
+		writer.buffer.get() += data;
 	}
 
+	/**
+	 * \brief Generates a string representation of obj
+	 *
+	 * \ingroup serialization
+	 */
 	inline auto to_string(object const& obj)
 	{
-		string_writer writer;
-		store(obj, writer);
-		return writer.buffer;
+		std::string ret;
+		store(obj, string_writer{ret});
+		return ret;
 	}
 }
 #endif
