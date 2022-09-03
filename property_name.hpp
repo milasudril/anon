@@ -1,5 +1,5 @@
-#ifndef ANON_KEY_HPP
-#define ANON_KEY_HPP
+#ifndef ANON_PROPERTYNAME_HPP
+#define ANON_PROPERTYNAME_HPP
 
 #include <algorithm>
 #include <string>
@@ -7,7 +7,24 @@
 
 namespace anon
 {
-	inline bool is_valid_key(std::string_view str)
+	/**
+	 * \brief Checks whether or not str can be used as a property_name
+	 *
+	 * This function checks whether or not str can be used as a property_name. For this to be true,
+	 * it must
+	 *
+	 * * Be shorter than 32 characters
+	 *
+	 * * Must not be empty
+	 *
+	 * * Not start with two `_`
+	 *
+	 * * Must not start with a digit
+	 *
+	 * * Must only contain lowercase a to z, `_`, and digits
+	 *
+	 */
+	constexpr bool is_valid_property_name(std::string_view str)
 	{
 		if(std::size(str) >= 32)
 		{ return false; }
@@ -23,15 +40,15 @@ namespace anon
 		});
 	}
 
-	class key
+	class property_name
 	{
 	public:
-		key() = default;
+		property_name() = default;
 
-		explicit key(std::string_view src)
+		explicit property_name(std::string_view src)
 		{
-			if(!is_valid_key(src))
-			{throw std::runtime_error{std::string{"Malformed key value '"}.append(src).append("'")};}
+			if(!is_valid_property_name(src))
+			{throw std::runtime_error{std::string{"Malformed property name '"}.append(src).append("'")};}
 
 			m_val = src;
 		}
@@ -48,7 +65,7 @@ namespace anon
 		auto size() const
 		{ return std::size(m_val); }
 
-		auto operator<=>(key const&) const = default;
+		auto operator<=>(property_name const&) const = default;
 
 		operator std::string_view() const
 		{

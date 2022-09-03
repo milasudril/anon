@@ -1,7 +1,7 @@
 #ifndef ANON_OBJECT_HPP
 #define ANON_OBJECT_HPP
 
-#include "./key.hpp"
+#include "./property_name.hpp"
 
 #include <variant>
 #include <string>
@@ -22,7 +22,7 @@ namespace anon
 		using mapped_type = var_with_arrays<int32_t, int64_t, uint32_t, uint64_t, float, double,
 			std::string, object>;
 
-		using key_type = key;
+		using key_type = property_name;
 
 		using value_type = std::pair<key_type const, mapped_type>;
 

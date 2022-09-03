@@ -42,7 +42,7 @@ namespace anon
 
 	template<class Sink>
 	requires(!std::is_same_v<Sink, std::filesystem::path>)
-	void store_body(key const& value, Sink&& sink)
+	void store_body(property_name const& value, Sink&& sink)
 	{ write(value.c_str(), sink); }
 
 

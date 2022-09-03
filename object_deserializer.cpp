@@ -135,7 +135,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					++ctxt.level;
 					auto [state, value] = state_from_ctrl_word(ctxt.buffer);
 					ctxt.parent_nodes.push(std::move(ctxt.current_node));
-					ctxt.current_node.first = key{ctxt.current_key};
+					ctxt.current_node.first = property_name{ctxt.current_key};
 					ctxt.current_node.second = std::move(value);
 					ctxt.current_state = state;
 					ctxt.buffer.clear();
@@ -165,7 +165,7 @@ anon::parse_result anon::update(std::optional<char> input, parser_context& ctxt)
 					++ctxt.level;
 					auto [state, value] = state_from_ctrl_word(ctxt.buffer);
 					ctxt.parent_nodes.push(std::move(ctxt.current_node));
-					ctxt.current_node.first = key{ctxt.current_key};
+					ctxt.current_node.first = property_name{ctxt.current_key};
 					ctxt.current_node.second = std::move(value);
 					ctxt.current_state = state;
 					ctxt.buffer.clear();
