@@ -54,6 +54,8 @@ namespace anon
 		/**
 		* \brief Processes input, and updates ctxt accordingly
 		*
+		* \note If an error occurs during processing of input, an exception is thrown
+		*
 		* \return parse_result::done if the outermost object was closed, otherwise
 		*         parse_result::more_data_needed
 		*
@@ -62,9 +64,30 @@ namespace anon
 		parse_result update(std::optional<char> input, parser_context& ctxt);
 	}
 
-	template<class Source>
-	requires(!std::is_same_v<Source, std::filesystem::path>)
-	object load(Source&& src)
+	/**
+	 * \brief Defines the requirements of a "source"
+	 *
+	 * A source is something that can be read from, for example, an input buffer or a file.
+	 *
+	 * \ingroup de-serialization
+	 *
+	 */
+	template<class T>
+	concept source = requires(T a)
+	{
+		/**
+		 * \brief Shall try to consume next byte and return it. If it possible to consume another
+		 *  byte, it shall return std::nullopt, which implies an End-Of-File condition.
+		 */
+		{ read_byte(a) } -> std::same_as<std::optional<char>>;
+	};
+
+	/**
+	 * \brief Loads an object from src, and returns it
+	 *
+	 * \ingroup de-serialization
+	 */
+	object load(source auto&& src)
 	{
 		deserializer_detail::parser_context ctxt;
 
@@ -77,22 +100,43 @@ namespace anon
 		}
 	}
 
+	/**
+	 * \brief An adapter to make it possible to use the C file API when loading objects
+	 *
+	 * \ingroup de-serialization
+	 */
 	struct cfile_reader
 	{
 		FILE* src;
 	};
 
+	/**
+	 * \brief Reads one byte from src and returns it if not at End-Of-File, otherwise it returns
+	 *  std::nullopt
+	 *
+	 * \ingroup de-serialization
+	 */
 	inline std::optional<char> read_byte(cfile_reader src)
 	{
 		auto ch_in = getc(src.src);
 		return ch_in != EOF? static_cast<char>(ch_in): std::optional<char>{};
 	}
 
+	/**
+	 * \brief Loads an object from the current position of src
+	 *
+	 * \ingroup de-serialization
+	 */
 	inline object load(FILE* src)
 	{
 		return load(cfile_reader{src});
 	}
 
+	/**
+	 * \brief Loads an object path
+	 *
+	 * \ingroup de-serialization
+	 */
 	inline object load(std::filesystem::path const& path)
 	{
 		auto file_deleter = [](FILE* f){ return fclose(f); };
