@@ -50,9 +50,9 @@ namespace anon
 	 * \brief Representation of \ref objects
 	 *
 	 * This class represents an object. It is designed on top of a suitable instantiation of
-	 * std::map, and provides a similar interface. The main difference is that `operator[]` of an
+	 * `std::map`, and provides a similar interface. The main difference is that `operator[]` of an
 	 * object is "safe", and does not allow insertion of new properties. Instead, it behaves like
-	 * std::map::at, with the difference that a different exception is thrown when the key is not
+	 * `std::map::at`, with the difference that a different exception is thrown when the key is not
 	 * found.
 	 *
 	 * \ingroup objects
@@ -82,6 +82,15 @@ namespace anon
 		 */
 		using value_type = std::pair<key_type const, mapped_type>;
 
+		/**
+		 * \name insert_or_assign
+		 *
+		 * \brief Inserts or updates a property with name key, and sets it value to val
+		 *
+		 * \return *this, to allow method chaining
+		 *
+		 */
+		///@{
 		template<class T>
 		object& insert_or_assign(key_type&& key, T&& val) &
 		{
@@ -95,7 +104,19 @@ namespace anon
 			m_content.insert_or_assign(std::move(key), std::forward<T>(val));
 			return std::move(*this);
 		}
+		///@}
 
+		/**
+		 * \name assign
+		 *
+		 * \brief Updates an existing property with name key, so it holds val
+		 *
+		 * \note If the property does not exist, an exception is thrown
+		 *
+		 * \return *this, to allow method chaining
+		 *
+		 */
+		///@{
 		template<class T>
 		object& assign(std::string_view key, T&& val) &
 		{
@@ -117,7 +138,19 @@ namespace anon
 			}
 			throw std::runtime_error{"Key not found"};
 		}
+		///@}
 
+		/**
+		 * \name insert
+		 *
+		 * \brief Inserts a property with name key, and sets its value to val
+		 *
+		 * \note If the property already exists, an exception is thrown
+		 *
+		 * \return *this, to allow method chaining
+		 *
+		 */
+		///@{
 		template<class T>
 		object& insert(key_type&& key, T&& val) &
 		{
@@ -137,7 +170,19 @@ namespace anon
 			}
 			throw std::runtime_error{"Key already exists"};
 		}
+		///@}
 
+		/**
+		 * \name operator[]
+		 *
+		 * \brief Retrieves the value of an existing property
+		 *
+		 * \note If the property does not exist, an exception is thrown
+		 *
+		 * \return A reference to the property value
+		 *
+		 */
+		///@{
 		auto const& operator[](std::string_view key) const
 		{
 			if(auto i = m_content.find(key); i != std::end(m_content))
@@ -155,12 +200,26 @@ namespace anon
 			}
 			throw std::runtime_error{"Key not found"};
 		}
+		///@}
 
+		/**
+		 * \brief Checks whether or not the object has an property with name key
+		 *
+		 * \return true if and only if the property exists, otherwise false
+		 *
+		 */
 		bool contains(std::string_view key) const
 		{
 			return m_content.contains(key);
 		}
 
+		/**
+		 * \name find
+		 *
+		 * \brief Looks up a property with name key as if calling `std::map::find`
+		 *
+		 */
+		///@{
 		decltype(auto) find(std::string_view key) const
 		{
 			return m_content.find(key);
@@ -170,12 +229,21 @@ namespace anon
 		{
 			return m_content.find(key);
 		}
+		///@}
 
+		/**
+		 * \brief Returns the number of properties this object has
+		 */
 		decltype(auto) size() const
 		{
 			return std::size(m_content);
 		}
 
+		/**
+		 * \name Iterator access
+		 *
+		 */
+		///@{
 		decltype(auto) begin() const
 		{
 			return std::begin(m_content);
@@ -195,6 +263,7 @@ namespace anon
 		{
 			return std::end(m_content);
 		}
+		///@}
 
 		auto operator<=>(object const&) const = default;
 
