@@ -3,8 +3,9 @@
 Anon is a text-based format used to store data. Its structure is similar to JSON in sense that Anon
 stores "objects", as a recursive key-value pair structure. Unlike JSON, chunks of anon-encoded data
 can be embedded inside another stream. For practicality and portability reasons, anon has
-restrictions on valid property names. See property_name.hpp for more more information about property
-name validation. Also, anon requires type annotations, and for arrays, they must be homogenous.
+restrictions on valid property names. See \ref property_names for more more information about
+property name validation. Also, anon requires type annotations, and for arrays, they must be
+homogenous.
 
 The syntax of anon has been designed to minimize the need for escaping strings. To achieve this, the
 parser's value mode will accept any character except `\`, which switches to control character mode.
