@@ -13,18 +13,14 @@
 
 namespace anon
 {
+	template<class ... Args>
+	using var_with_arrays = std::variant<Args..., std::vector<Args>...>;
+
 	class object
 	{
 	public:
-		using mapped_type = std::variant<
-			int32_t, std::vector<int32_t>,
-			int64_t, std::vector<int64_t>,
-			uint32_t, std::vector<uint32_t>,
-			uint64_t, std::vector<uint64_t>,
-			float, std::vector<float>,
-			double, std::vector<double>,
-			std::string, std::vector<std::string>,
-			object, std::vector<object>>;
+		using mapped_type = var_with_arrays<int32_t, int64_t, uint32_t, uint64_t, float, double,
+			std::string, object>;
 
 		using key_type = key;
 
