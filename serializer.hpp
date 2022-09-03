@@ -1,6 +1,12 @@
 #ifndef ANON_SERIALIZER_HPP
 #define ANON_SERIALIZER_HPP
 
+/**
+ * \file serializer.hpp
+ *
+ * \brief Contains declarations and definitions regarding serialization
+ */
+
 #include "./type_info.hpp"
 
 #include <filesystem>
@@ -10,44 +16,55 @@
 #include <charconv>
 #include <cstring>
 
+/**
+ * \defgroup serialization
+ */
+
 namespace anon
 {
-	template<class Entity, class Sink>
-	requires(!std::is_same_v<Sink, std::filesystem::path>)
+	/**
+	 * \brief Defines the requirements of a "sink"
+	 *
+	 * A sink is something that can be written to, for example, an output buffer or a file. It shall
+	 * support writing single characters as well as C-style strings.
+	 *
+	 * \ingroup serialization
+	 *
+	 */
+	template<class T>
+	concept sink = requires(T a)
+	{
+		{ write(std::declval<char>(), a) } -> std::same_as<void>;
+		{ write(std::declval<char const*>(), a) } -> std::same_as<void>;
+	};
+
+	template<class Entity, sink Sink>
 	void store(Entity const& item, Sink&& sink);
 
-	template<class Sink>
-	requires(!std::is_same_v<Sink, std::filesystem::path>)
+	template<sink Sink>
 	void store_body(object const& obj, Sink&& sink);
 
-	template<class T, class Sink>
-	requires(!std::is_same_v<Sink, std::filesystem::path>)
+	template<class T, sink Sink>
 	void store_body(std::vector<T> const& array, Sink&& sink);
 
-	template<class T, class Sink>
-	requires(std::is_integral_v<T> && !std::is_same_v<Sink, std::filesystem::path>)
+	template<std::integral T, sink Sink>
 	void store_body(T value, Sink&& sink);
 
-	template<class T, class Sink>
-	requires(std::is_floating_point_v<T> && !std::is_same_v<Sink, std::filesystem::path>)
+	template<std::floating_point T, sink Sink>
 	void store_body(T value, Sink&& sink);
 
-	template<class Entity, class Sink>
-	requires(!std::is_same_v<Sink, std::filesystem::path>)
+	template<class Entity, sink Sink>
 	void store(Entity const& item, Sink&& sink);
 
-	template<class Sink>
-	requires(!std::is_same_v<Sink, std::filesystem::path>)
+	template<sink Sink>
 	void store_body(std::string_view value, Sink&& sink);
 
-	template<class Sink>
-	requires(!std::is_same_v<Sink, std::filesystem::path>)
+	template<sink Sink>
 	void store_body(property_name const& value, Sink&& sink)
 	{ write(value.c_str(), sink); }
 
 
-	template<class Sink>
-	requires(!std::is_same_v<Sink, std::filesystem::path>)
+	template<sink Sink>
 	void store_body(object const& obj, Sink&& sink)
 	{
 		std::ranges::for_each(obj, [&sink](auto const& item){
@@ -59,8 +76,7 @@ namespace anon
 		});
 	}
 
-	template<class T, class Sink>
-	requires(!std::is_same_v<Sink, std::filesystem::path>)
+	template<class T, sink Sink>
 	void store_body(std::vector<T> const& array, Sink&& sink)
 	{
 		std::ranges::for_each(array, [&sink](auto const& item){
@@ -69,8 +85,7 @@ namespace anon
 		});
 	}
 
-	template<class T, class Sink>
-	requires(std::is_integral_v<T> && !std::is_same_v<Sink, std::filesystem::path>)
+	template<std::integral T, sink Sink>
 	void store_body(T value, Sink&& sink)
 	{
 		std::array<char, std::numeric_limits<T>::digits10 + 2> buffer{};
@@ -78,8 +93,7 @@ namespace anon
 		write(std::data(buffer), sink);
 	}
 
-	template<class T, class Sink>
-	requires(std::is_floating_point_v<T> && !std::is_same_v<Sink, std::filesystem::path>)
+	template<std::floating_point T, sink Sink>
 	void store_body(T value, Sink&& sink)
 	{
 		std::array<char, std::numeric_limits<T>::digits10 + 2> buffer{};
@@ -87,8 +101,7 @@ namespace anon
 		write(std::data(buffer), sink);
 	}
 
-	template<class Sink>
-	requires(!std::is_same_v<Sink, std::filesystem::path>)
+	template<sink Sink>
 	void store_body(std::string_view value, Sink&& sink)
 	{
 		std::ranges::for_each(value, [&sink](auto item) {
@@ -101,8 +114,7 @@ namespace anon
 		});
 	}
 
-	template<class Entity, class Sink>
-	requires(!std::is_same_v<Sink, std::filesystem::path>)
+	template<class Entity, sink Sink>
 	void store(Entity const& item, Sink&& sink)
 	{
 		write(type_info<Entity>::name(), sink);
