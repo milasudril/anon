@@ -104,6 +104,18 @@ namespace anon
 			m_content.insert_or_assign(std::move(key), std::forward<T>(val));
 			return std::move(*this);
 		}
+
+		template<class T>
+		object& insert_or_assign(std::string_view key, T&& val) &
+		{
+			return insert_or_assign(key_type{key}, std::forward<T>(val));
+		}
+
+		template<class T>
+		object&& insert_or_assign(std::string_view key, T&& val) &&
+		{
+			return std::move(insert_or_assign(key_type{key}, std::forward<T>(val)));
+		}
 		///@}
 
 		/**
