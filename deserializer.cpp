@@ -133,16 +133,18 @@ anon::object::mapped_type&& anon::take_result(anon::deserializer_detail::parser_
 	return std::move(ctxt.current_node.second);
 }
 
-anon::deserializer_detail::parse_result
-anon::deserializer_detail::update(std::optional<char> input, parser_context& ctxt)
+anon::parse_result
+anon::update(std::optional<char> input, deserializer_detail::parser_context& ctxt)
 {
+	using deserializer_detail::parser_context;
+
 	if(!input.has_value())
 	{
 		if(ctxt.level != 0)
 		{
 			throw std::runtime_error{"Input data contains an non-terminated value"};
 		}
-		return anon::deserializer_detail::parse_result::done;
+		return anon::parse_result::done;
 	}
 
 	auto const val = *input;

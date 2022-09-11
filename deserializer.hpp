@@ -32,25 +32,10 @@ namespace anon
 		struct parser_context;
 
 		/**
-		* \brief Holds the result after processing one byte
-		*
-		* \ingroup de-serialization
-		*
-		*/
-		enum class parse_result{done, more_data_needed};
-
-		/**
-		* \brief Processes input, and updates ctxt accordingly
-		*
-		* \note If an error occurs during processing of input, an exception is thrown
-		*
-		* \return parse_result::done if the outermost object was closed, otherwise
-		*         parse_result::more_data_needed
-		*
-		* \ingroup de-serialization
-		*/
-		parse_result update(std::optional<char> input, parser_context& ctxt);
-
+		 * \brief Destroys ctxt
+		 *
+		 * \ingroup de-serialization
+		 */
 		void destroy_parser_context(parser_context* ctxt);
 
 		struct parser_context_deleter
@@ -83,9 +68,38 @@ namespace anon
 	using parser_context_handle =
 		std::unique_ptr<deserializer_detail::parser_context, deserializer_detail::parser_context_deleter>;
 
+	/**
+	 * \brief Creates a new parser context
+	 *
+	 *  \ingroup de-serialization
+	 */
 	parser_context_handle create_parser_context();
 
+	/**
+	 * \brief Extracts the latest result from ctxt
+	 *
+	 * \ingroup de-serialization
+	 */
 	object::mapped_type&& take_result(deserializer_detail::parser_context& ctxt);
+
+	/**
+	* \brief Holds the result after processing one byte
+	*
+	* \ingroup de-serialization
+	*/
+	enum class parse_result{done, more_data_needed};
+
+	/**
+	* \brief Processes input, and updates ctxt accordingly
+	*
+	* \note If an error occurs during processing of input, an exception is thrown
+	*
+	* \return parse_result::done if the outermost object was closed, otherwise
+	*         parse_result::more_data_needed
+	*
+	* \ingroup de-serialization
+	*/
+	parse_result update(std::optional<char> input, deserializer_detail::parser_context& ctxt);
 
 	/**
 	 * \brief Loads an object from src, and returns it
@@ -98,7 +112,7 @@ namespace anon
 
 		while(true)
 		{
-			if(update(read_byte(src), *ctxt) == deserializer_detail::parse_result::done)
+			if(update(read_byte(src), *ctxt) == parse_result::done)
 			{
 				return std::get<object>(take_result(*ctxt));
 			}
