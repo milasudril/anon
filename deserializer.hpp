@@ -29,19 +29,7 @@ namespace anon
 		*
 		* \ingroup de-serialization
 		*/
-		struct parser_context
-		{
-			using state = parser_state;
-
-			state current_state{state::init};
-			state prev_state{state::init};
-			std::string buffer;
-			using node_type = std::pair<object::key_type, object::mapped_type>;
-			std::string current_key;
-			node_type current_node;
-			std::stack<node_type> parent_nodes;
-			size_t level{0};
-		};
+		struct parser_context;
 
 		/**
 		* \brief Holds the result after processing one byte
@@ -97,6 +85,8 @@ namespace anon
 
 	parser_context_handle create_parser_context();
 
+	object::mapped_type&& take_result(deserializer_detail::parser_context& ctxt);
+
 	/**
 	 * \brief Loads an object from src, and returns it
 	 *
@@ -110,7 +100,7 @@ namespace anon
 		{
 			if(update(read_byte(src), *ctxt) == deserializer_detail::parse_result::done)
 			{
-				return std::get<object>(ctxt->current_node.second);
+				return std::get<object>(take_result(*ctxt));
 			}
 		}
 	}

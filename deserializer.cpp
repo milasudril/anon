@@ -104,15 +104,33 @@ namespace
 	{}
 }
 
+struct anon::deserializer_detail::parser_context
+{
+	using state = parser_state;
+
+	state current_state{state::init};
+	state prev_state{state::init};
+	std::string buffer;
+	using node_type = std::pair<object::key_type, object::mapped_type>;
+	std::string current_key;
+	node_type current_node;
+	std::stack<node_type> parent_nodes;
+	size_t level{0};
+};
+
 void anon::deserializer_detail::destroy_parser_context(parser_context* obj)
 {
 	delete obj;
 }
 
-
 anon::parser_context_handle anon::create_parser_context()
 {
 	return parser_context_handle{new deserializer_detail::parser_context};
+}
+
+anon::object::mapped_type&& anon::take_result(anon::deserializer_detail::parser_context& ctxt)
+{
+	return std::move(ctxt.current_node.second);
 }
 
 anon::deserializer_detail::parse_result
