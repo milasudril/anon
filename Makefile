@@ -21,7 +21,7 @@ doc:
 DESTDIR?=""
 PREFIX?="/usr"
 .PHONY: install
-install: all make_pkgconfig.sh
+install: make_pkgconfig.sh
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(PREFIX)/include/anon
 	mkdir -p $(DESTDIR)$(PREFIX)/lib

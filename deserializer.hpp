@@ -62,6 +62,16 @@ namespace anon
 		* \ingroup de-serialization
 		*/
 		parse_result update(std::optional<char> input, parser_context& ctxt);
+
+		void destroy_parser_context(parser_context* ctxt);
+
+		struct parser_context_deleter
+		{
+			void operator()(parser_context* ctxt)
+			{
+				destroy_parser_context(ctxt);
+			}
+		};
 	}
 
 	/**
@@ -82,6 +92,11 @@ namespace anon
 		{ read_byte(a) } -> std::same_as<std::optional<char>>;
 	};
 
+	using parser_context_handle =
+		std::unique_ptr<deserializer_detail::parser_context, deserializer_detail::parser_context_deleter>;
+
+	parser_context_handle create_parser_context();
+
 	/**
 	 * \brief Loads an object from src, and returns it
 	 *
@@ -89,13 +104,13 @@ namespace anon
 	 */
 	object load(source auto&& src)
 	{
-		deserializer_detail::parser_context ctxt;
+		auto ctxt = create_parser_context();
 
 		while(true)
 		{
-			if(update(read_byte(src), ctxt) == deserializer_detail::parse_result::done)
+			if(update(read_byte(src), *ctxt) == deserializer_detail::parse_result::done)
 			{
-				return std::get<object>(ctxt.current_node.second);
+				return std::get<object>(ctxt->current_node.second);
 			}
 		}
 	}

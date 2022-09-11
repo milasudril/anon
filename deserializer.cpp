@@ -104,6 +104,17 @@ namespace
 	{}
 }
 
+void anon::deserializer_detail::destroy_parser_context(parser_context* obj)
+{
+	delete obj;
+}
+
+
+anon::parser_context_handle anon::create_parser_context()
+{
+	return parser_context_handle{new deserializer_detail::parser_context};
+}
+
 anon::deserializer_detail::parse_result
 anon::deserializer_detail::update(std::optional<char> input, parser_context& ctxt)
 {
