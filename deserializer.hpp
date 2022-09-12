@@ -48,6 +48,32 @@ namespace anon
 	}
 
 	/**
+	 * \brief Defines the current status of a stream
+	 *
+	 * \ingroup de-serialization
+	 *
+	 */
+	enum class stream_status:char{ready, eof, blocking};
+
+	/**
+	 * \brief Holder for the result of a read operation
+	 *
+	 * \ingroup de-serialization
+	 */
+	struct read_result
+	{
+		/**
+		 * \brief Holds the last value read from a input stream, only useful of if status is ready.
+		 */
+		char value;
+
+		/**
+		 * \brief Determines the status of the input stream
+		 */
+		stream_status status;
+	};
+
+	/**
 	 * \brief Defines the requirements of a "source"
 	 *
 	 * A source is something that can be read from, for example, an input buffer or a file.
