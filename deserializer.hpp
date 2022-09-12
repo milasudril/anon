@@ -99,7 +99,12 @@ namespace anon
 	*
 	* \ingroup de-serialization
 	*/
-	parse_result update(std::optional<char> input, deserializer_detail::parser_context& ctxt);
+	parse_result update(char input, deserializer_detail::parser_context& ctxt);
+
+	/**
+	 * \brief Tests whether or not the current top-level object has been fully parsed
+	 */
+	bool is_complete(deserializer_detail::parser_context const& ctxt);
 
 	/**
 	 * \brief Loads an object from src, and returns it
@@ -112,7 +117,14 @@ namespace anon
 
 		while(true)
 		{
-			if(update(read_byte(src), *ctxt) == parse_result::done)
+			auto const read_res = read_byte(src);
+			if(!read_res.has_value())
+			{
+				if(!is_complete(*ctxt))
+				{ throw std::runtime_error{"Input data contains an non-terminated value"}; }
+			}
+
+			if(update(*read_res, *ctxt) == parse_result::done)
 			{
 				return std::get<object>(take_result(*ctxt));
 			}
