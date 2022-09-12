@@ -108,6 +108,13 @@ namespace anon
 	object::mapped_type&& take_result(deserializer_detail::parser_context& ctxt);
 
 	/**
+	 * \brief Extracts the latest result from ctxt, and resets ctxt to its initial state
+	 *
+	 * \ingroup de-serialization
+	 */
+	object::mapped_type&& take_result_and_reset(deserializer_detail::parser_context& ctxt);
+
+	/**
 	* \brief Holds the result after processing one byte
 	*
 	* \ingroup de-serialization
@@ -126,10 +133,45 @@ namespace anon
 	*/
 	parse_result update(char input, deserializer_detail::parser_context& ctxt);
 
-	/**
-	 * \brief Tests whether or not the current top-level object has been fully parsed
-	 */
-	bool is_complete(deserializer_detail::parser_context const& ctxt);
+	template<source Source>
+	class async_loader
+	{
+	public:
+		explicit async_loader(Source&& src):
+			m_source{std::move(src)},
+			m_parser_ctxt{create_parser_context()}
+		{}
+
+		template<class T>
+		std::optional<T> try_read_next()
+		{
+			while(true)
+			{
+				auto const read_res = read_byte(m_source);
+				switch(read_res.status)
+				{
+					case stream_status::ready:
+						if(update(read_res.value, *m_parser_ctxt) == parse_result::done)
+						{
+							return std::get<T>(take_result_and_reset(*m_parser_ctxt));
+						}
+						break;
+
+					case stream_status::eof:
+						throw std::runtime_error{"Input data contains an non-terminated value"};
+
+					case stream_status::blocking:
+						return std::nullopt;
+				}
+			}
+		}
+
+	private:
+		Source m_source;
+		parser_context_handle m_parser_ctxt;
+	};
+
+
 
 	/**
 	 * \brief Loads an object from src, and returns it. stream_status::blocking is treated
@@ -155,10 +197,7 @@ namespace anon
 
 				case stream_status::eof:
 				case stream_status::blocking:
-					if(!is_complete(*ctxt))
-					{ throw std::runtime_error{"Input data contains an non-terminated value"}; }
-
-					break;
+					throw std::runtime_error{"Input data contains an non-terminated value"};
 			}
 		}
 	}

@@ -133,11 +133,6 @@ anon::object::mapped_type&& anon::take_result(anon::deserializer_detail::parser_
 	return std::move(ctxt.current_node.second);
 }
 
-bool anon::is_complete(deserializer_detail::parser_context const& ctxt)
-{
-	return ctxt.level == 0;
-}
-
 anon::parse_result
 anon::update(char input, deserializer_detail::parser_context& ctxt)
 {
