@@ -17,11 +17,14 @@ namespace
 		char const* ptr;
 	};
 
-	std::optional<char> read_byte(buffer& buff)
+	anon::read_result read_byte(buffer& buff)
 	{
-		auto ret = buff.ptr != std::end(buff.data)? std::optional{*buff.ptr} : std::nullopt;
+		auto ret_val = buff.ptr != std::end(buff.data)? *buff.ptr : '\0';
+		auto ret_status = buff.ptr != std::end(buff.data) ?
+			anon::stream_status::ready: anon::stream_status::eof;
 		++buff.ptr;
-		return ret;
+
+		return anon::read_result{ret_val, ret_status};
 	}
 
 	struct writebuff

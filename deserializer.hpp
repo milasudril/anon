@@ -85,10 +85,9 @@ namespace anon
 	concept source = requires(T a)
 	{
 		/**
-		 * \brief Shall try to consume next byte and return it. If it possible to consume another
-		 *  byte, it shall return std::nullopt, which implies an End-Of-File condition.
+		 * \brief Shall try to consume next byte and return a read_result with appropriate values
 		 */
-		{ read_byte(a) } -> std::same_as<std::optional<char>>;
+		{ read_byte(a) } -> std::same_as<read_result>;
 	};
 
 	using parser_context_handle =
@@ -133,7 +132,8 @@ namespace anon
 	bool is_complete(deserializer_detail::parser_context const& ctxt);
 
 	/**
-	 * \brief Loads an object from src, and returns it
+	 * \brief Loads an object from src, and returns it. stream_status::blocking is treated
+	 * as stream_status::eof.
 	 *
 	 * \ingroup de-serialization
 	 */
@@ -144,15 +144,21 @@ namespace anon
 		while(true)
 		{
 			auto const read_res = read_byte(src);
-			if(!read_res.has_value())
+			switch(read_res.status)
 			{
-				if(!is_complete(*ctxt))
-				{ throw std::runtime_error{"Input data contains an non-terminated value"}; }
-			}
+				case stream_status::ready:
+					if(update(read_res.value, *ctxt) == parse_result::done)
+					{
+						return std::get<object>(take_result(*ctxt));
+					}
+					break;
 
-			if(update(*read_res, *ctxt) == parse_result::done)
-			{
-				return std::get<object>(take_result(*ctxt));
+				case stream_status::eof:
+				case stream_status::blocking:
+					if(!is_complete(*ctxt))
+					{ throw std::runtime_error{"Input data contains an non-terminated value"}; }
+
+					break;
 			}
 		}
 	}
@@ -168,15 +174,18 @@ namespace anon
 	};
 
 	/**
-	 * \brief Reads one byte from src and returns it if not at End-Of-File, otherwise it returns
-	 *  std::nullopt
+	 * \brief Reads one byte from src and returns it in a read_result
 	 *
 	 * \ingroup de-serialization
 	 */
-	inline std::optional<char> read_byte(cfile_reader src)
+	inline read_result read_byte(cfile_reader src)
 	{
 		auto ch_in = getc(src.src);
-		return ch_in != EOF? static_cast<char>(ch_in): std::optional<char>{};
+
+		return read_result{
+			static_cast<char>(ch_in),
+			ch_in == EOF? stream_status::eof:stream_status::ready
+		};
 	}
 
 	/**
