@@ -101,18 +101,11 @@ namespace anon
 	parser_context_handle create_parser_context();
 
 	/**
-	 * \brief Extracts the latest result from ctxt
-	 *
-	 * \ingroup de-serialization
-	 */
-	object::mapped_type&& take_result(deserializer_detail::parser_context& ctxt);
-
-	/**
 	 * \brief Extracts the latest result from ctxt, and resets ctxt to its initial state
 	 *
 	 * \ingroup de-serialization
 	 */
-	object::mapped_type&& take_result_and_reset(deserializer_detail::parser_context& ctxt);
+	object::mapped_type take_result_and_reset(deserializer_detail::parser_context& ctxt);
 
 	/**
 	* \brief Holds the result after processing one byte
@@ -138,7 +131,7 @@ namespace anon
 	{
 	public:
 		explicit async_loader(Source&& src):
-			m_source{std::move(src)},
+			m_source{std::forward<Source>(src)},
 			m_parser_ctxt{create_parser_context()}
 		{}
 
@@ -171,34 +164,23 @@ namespace anon
 		parser_context_handle m_parser_ctxt;
 	};
 
-
+	template<source Source>
+	async_loader(Source&) -> async_loader<Source&>;
 
 	/**
-	 * \brief Loads an object from src, and returns it. stream_status::blocking is treated
-	 * as stream_status::eof.
+	 * \brief Loads an object from src, and returns it. In case of a blocking stream, it will try
+	 * again.
 	 *
 	 * \ingroup de-serialization
 	 */
-	object load(source auto&& src)
+	template<source Source>
+	object load(Source&& src)
 	{
-		auto ctxt = create_parser_context();
-
+		async_loader loader{std::forward<Source>(src)};
 		while(true)
 		{
-			auto const read_res = read_byte(src);
-			switch(read_res.status)
-			{
-				case stream_status::ready:
-					if(update(read_res.value, *ctxt) == parse_result::done)
-					{
-						return std::get<object>(take_result(*ctxt));
-					}
-					break;
-
-				case stream_status::eof:
-				case stream_status::blocking:
-					throw std::runtime_error{"Input data contains an non-terminated value"};
-			}
+			if(auto res = loader.template try_read_next<object>(); res.has_value())
+			{ return std::move(*res); }
 		}
 	}
 

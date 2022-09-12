@@ -128,9 +128,11 @@ anon::parser_context_handle anon::create_parser_context()
 	return parser_context_handle{new deserializer_detail::parser_context};
 }
 
-anon::object::mapped_type&& anon::take_result(anon::deserializer_detail::parser_context& ctxt)
+anon::object::mapped_type anon::take_result_and_reset(anon::deserializer_detail::parser_context& ctxt)
 {
-	return std::move(ctxt.current_node.second);
+	auto ret = std::move(ctxt.current_node.second);
+	ctxt = anon::deserializer_detail::parser_context{};
+	return ret;
 }
 
 anon::parse_result
