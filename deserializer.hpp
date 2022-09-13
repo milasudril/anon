@@ -126,6 +126,11 @@ namespace anon
 	*/
 	parse_result update(char input, deserializer_detail::parser_context& ctxt);
 
+	/**
+	 * \brief Class for asynchronous loading of data
+	 *
+	 * \ingroup de-serialization
+	 */
 	template<source Source>
 	class async_loader
 	{
@@ -135,6 +140,13 @@ namespace anon
 			m_parser_ctxt{create_parser_context()}
 		{}
 
+		/**
+		 * \brief Tries to read the next T from the source associated with this loader
+		 *
+		 * This function tries to read the next T from the source associated with this loader. If
+		 * it is not possible to pull more data without blocking, std::nullopt is returned. In case
+		 * something different than a T was read, it will throw an exception.
+		 */
 		template<class T>
 		std::optional<T> try_read_next()
 		{
@@ -173,13 +185,13 @@ namespace anon
 	 *
 	 * \ingroup de-serialization
 	 */
-	template<source Source>
-	object load(Source&& src)
+	template<class T = object, source Source>
+	T load(Source&& src)
 	{
 		async_loader loader{std::forward<Source>(src)};
 		while(true)
 		{
-			if(auto res = loader.template try_read_next<object>(); res.has_value())
+			if(auto res = loader.template try_read_next<T>(); res.has_value())
 			{ return std::move(*res); }
 		}
 	}
