@@ -163,7 +163,7 @@ namespace anon
 						break;
 
 					case stream_status::eof:
-						throw std::runtime_error{"Input data contains an non-terminated value"};
+						throw std::runtime_error{"Empty or incomplete value"};
 
 					case stream_status::blocking:
 						return std::nullopt;
