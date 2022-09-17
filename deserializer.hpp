@@ -171,6 +171,9 @@ namespace anon
 			}
 		}
 
+		decltype(auto) source()
+		{ return m_source; }
+
 	private:
 		Source m_source;
 		parser_context_handle m_parser_ctxt;

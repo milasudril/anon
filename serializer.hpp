@@ -136,7 +136,7 @@ namespace anon
 	template<std::floating_point T, sink Sink>
 	void store_body(T value, Sink&& sink)
 	{
-		std::array<char, std::numeric_limits<T>::digits10 + 2> buffer{};
+		std::array<char, std::numeric_limits<T>::digits10 + 7> buffer{};
 		std::to_chars(std::begin(buffer), std::end(buffer), value, std::chars_format::scientific);
 		write(std::data(buffer), sink);
 	}
